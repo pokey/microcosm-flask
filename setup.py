@@ -26,6 +26,7 @@ setup(
     ],
     entry_points={
         "microcosm.factories": [
+            "health = microcosm_flask.conventions.health:configure_health",
             "flask = microcosm_flask.factories:configure_flask",
         ],
     },
