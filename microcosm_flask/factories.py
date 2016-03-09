@@ -35,5 +35,6 @@ def configure_flask_app(graph):
         "basic_auth",
         "error_handlers",
         "health",
+        "logger",
     )
     return graph.flask

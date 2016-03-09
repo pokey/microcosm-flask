@@ -19,6 +19,7 @@ setup(
         "Flask>=0.10.1",
         "Flask-BasicAuth>=0.2.0",
         "microcosm>=0.4.0",
+        "microcosm-logging>=0.1.0",
     ],
     setup_requires=[
         "nose>=1.3.6",
