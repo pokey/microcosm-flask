@@ -19,7 +19,7 @@ def test_health_check():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("health")
+    graph.use("app")
 
     client = graph.flask.test_client()
 
@@ -39,11 +39,11 @@ def test_health_check_custom_check():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    [health] = graph.use("health")
+    graph.use("app")
 
     client = graph.flask.test_client()
 
-    health.checks["foo"] = True
+    graph.health.checks["foo"] = True
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(200)))
@@ -63,11 +63,11 @@ def test_health_check_custom_check_failed():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    [health] = graph.use("health")
+    graph.use("app")
 
     client = graph.flask.test_client()
 
-    health.checks["foo"] = False
+    graph.health.checks["foo"] = False
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(503)))

@@ -7,13 +7,27 @@ from flask import Flask
 
 def configure_flask(graph):
     """
-    Create the Flask application.
+    Create the Flask instance (only), bound to the "flask" key.
+
+    Conventions should refer to `graph.flask` to avoid circular dependencies.
 
     """
-    flask = Flask(graph.metadata.name)
-    flask.debug = graph.metadata.debug
-    flask.testing = graph.metadata.testing
+    app = Flask(graph.metadata.name)
+    app.debug = graph.metadata.debug
+    app.testing = graph.metadata.testing
 
     # TODO: wire in the graph's configuration to Flask's
 
-    return flask
+    return app
+
+
+def configure_flask_app(graph):
+    """
+    Configure a Flask application with common convnetions, bound to the "app" key.
+
+    """
+    graph.use(
+        "error_handlers",
+        "health",
+    )
+    return graph.flask

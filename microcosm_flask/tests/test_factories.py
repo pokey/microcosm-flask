@@ -18,4 +18,4 @@ def test_configure_flask():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    assert_that(graph.flask, is_(instance_of(Flask)))
+    assert_that(graph.app, is_(instance_of(Flask)))

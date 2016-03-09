@@ -26,8 +26,10 @@ setup(
     ],
     entry_points={
         "microcosm.factories": [
+            "error_handlers = microcosm_flask.errors:configure_error_handlers",
             "health = microcosm_flask.conventions.health:configure_health",
             "flask = microcosm_flask.factories:configure_flask",
+            "app = microcosm_flask.factories:configure_flask_app",
         ],
     },
     tests_require=[
