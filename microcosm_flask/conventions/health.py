@@ -7,6 +7,10 @@ using HTTP 200/503 status codes to indicate healthiness.
 """
 from flask import jsonify
 
+from microcosm.api import defaults
+from microcosm_flask.naming import singleton_path_for
+from microcosm_flask.operations import Operation
+
 
 class Health(object):
     """
@@ -47,6 +51,9 @@ class Health(object):
         )
 
 
+@defaults(
+    path_prefix="/api",
+)
 def configure_health(graph):
     """
     Configure the health endpoint.
@@ -56,8 +63,9 @@ def configure_health(graph):
     """
 
     health = Health(name=graph.metadata.name)
+    path = graph.config.health.path_prefix + singleton_path_for(Health)
 
-    @graph.flask.route("/api/health")
+    @graph.route(path, Operation.Retrieve, Health)
     def current_health():
         dct = health.to_dict()
         response = jsonify(dct)
