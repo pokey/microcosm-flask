@@ -16,7 +16,12 @@ def configure_flask(graph):
     app.debug = graph.metadata.debug
     app.testing = graph.metadata.testing
 
-    # TODO: wire in the graph's configuration to Flask's
+    # copy in the graph's configuration for non-nested keys
+    app.config.update({
+        key: value
+        for key, value in graph.config.items()
+        if not isinstance(value, dict)
+    })
 
     return app
 
@@ -27,6 +32,7 @@ def configure_flask_app(graph):
 
     """
     graph.use(
+        "basic_auth",
         "error_handlers",
         "health",
     )

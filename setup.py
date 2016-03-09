@@ -17,6 +17,7 @@ setup(
     keywords="microcosm",
     install_requires=[
         "Flask>=0.10.1",
+        "Flask-BasicAuth>=0.2.0",
         "microcosm>=0.4.0",
     ],
     setup_requires=[
@@ -26,10 +27,11 @@ setup(
     ],
     entry_points={
         "microcosm.factories": [
-            "error_handlers = microcosm_flask.errors:configure_error_handlers",
-            "health = microcosm_flask.conventions.health:configure_health",
-            "flask = microcosm_flask.factories:configure_flask",
             "app = microcosm_flask.factories:configure_flask_app",
+            "basic_auth = microcosm_flask.basic_auth:configure_basic_auth",
+            "error_handlers = microcosm_flask.errors:configure_error_handlers",
+            "flask = microcosm_flask.factories:configure_flask",
+            "health = microcosm_flask.conventions.health:configure_health",
         ],
     },
     tests_require=[
