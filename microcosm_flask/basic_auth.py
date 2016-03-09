@@ -1,6 +1,14 @@
 """
 Basic Auth support.
 
+Usage:
+
+    @graph.app.route("/path")
+    @graph.basic_auth.required
+    def must_be_authorized():
+        pass
+
+
 """
 from base64 import b64encode
 
