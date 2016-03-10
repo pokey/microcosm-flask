@@ -16,6 +16,11 @@ def with_headers(error, headers):
     return error
 
 
+def with_context(error, context):
+    setattr(error, "context", context)
+    return error
+
+
 def extract_status_code(error):
     """
     Extract an error code from a message.
@@ -101,6 +106,7 @@ def make_json_error(error):
 
     # Serialize into JSON response
     response_data = {
+        "code": status_code,
         "context": context,
         "message": message,
         "retryable": retryable,

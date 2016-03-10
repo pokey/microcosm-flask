@@ -32,6 +32,7 @@ class Operation(Enum):
     # collection operations
     Search = OperationInfo("search", "GET")
     Create = OperationInfo("create", "POST")
+    # bulk update is possible here with PATCH
 
     # instance operations
     Retrieve = OperationInfo("retrieve", "GET")

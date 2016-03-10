@@ -10,6 +10,15 @@ See: https://tools.ietf.org/html/draft-kelly-json-hal-07
 from werkzeug.routing import BuildError
 
 
+# NB: it would be nice to use marshmallow schemas in lieu of `to_dict()` functions here
+#
+# The main obstacles are:
+#
+#  - Links values can be dictionaries (with an "href") or lists of the same.
+#  - Links are encoded in several places; it's a bit more convention to call `to_dict()`
+#    than to instantiate a schema instance in each case.
+
+
 class Links(object):
     """
     A collection of links organized by relation name.

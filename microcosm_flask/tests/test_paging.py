@@ -10,16 +10,17 @@ from hamcrest import (
 
 from microcosm.api import create_object_graph
 from microcosm_flask.operations import Operation
-from microcosm_flask.paging import Page, PaginatedList
+from microcosm_flask.paging import Page, PageSchema, PaginatedList
 
 
-def test_page_from_request():
+def test_page_from_query_string():
     graph = create_object_graph(name="example", testing=True)
 
     with graph.flask.test_request_context():
-        page = Page.from_request(default_limit=100)
+        qs = PageSchema.from_request()
+        page = Page.from_query_string(qs)
         assert_that(page.offset, is_(equal_to(0)))
-        assert_that(page.limit, is_(equal_to(100)))
+        assert_that(page.limit, is_(equal_to(20)))
 
 
 def test_page_to_dict():
