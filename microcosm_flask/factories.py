@@ -28,12 +28,13 @@ def configure_flask(graph):
 
 def configure_flask_app(graph):
     """
-    Configure a Flask application with common convnetions, bound to the "app" key.
+    Configure a Flask application with common conventions, bound to the "app" key.
 
     """
     graph.use(
         "audit",
         "basic_auth",
+        "discovery",
         "error_handlers",
         "health",
         "logger",

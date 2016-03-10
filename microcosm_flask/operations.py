@@ -70,3 +70,20 @@ class Operation(Enum):
             urljoin(request.url_root, self.url_for(obj, **kwargs)),
             "?{}".format(urlencode(qs)) if qs else "",
         )
+
+    @classmethod
+    def from_name(cls, name):
+        for operation in cls:
+            if operation.value.name == name:
+                return operation
+        else:
+            raise ValueError(name)
+
+    @classmethod
+    def parse(cls, name):
+        """
+        Convert an operation name back to an operation, obj tuple.
+
+        """
+        obj, operation_name = name.split(".", 1)
+        return cls.from_name(operation_name), obj

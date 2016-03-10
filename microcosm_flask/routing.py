@@ -29,7 +29,12 @@ def configure_route_decorator(graph):
             pass
 
     """
+    graph.use(
+        "uuid",
+    )
+
     def route(path, operation, obj):
+
         def decorator(func):
             if graph.config.route.enable_cors:
                 func = cross_origin(supports_credentials=True)(func)
