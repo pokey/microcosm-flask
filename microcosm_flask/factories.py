@@ -34,10 +34,7 @@ def configure_flask_app(graph):
     graph.use(
         "audit",
         "basic_auth",
-        "discovery",
         "error_handlers",
-        "health",
         "logger",
-        "route",
     )
     return graph.flask

@@ -16,7 +16,6 @@ from microcosm_flask.operations import Operation
 
 def test_discovery():
     graph = create_object_graph(name="example", testing=True)
-    # TODO: can we make this automatic?
     graph.use("discovery")
 
     @graph.route("/path", Operation.Search, "foo")
@@ -31,11 +30,11 @@ def test_discovery():
     assert_that(data, is_(equal_to({
         "_links": {
             "search": [{
-                "href": "http://localhost/api/path?limit=20&offset=0",
+                "href": "http://localhost/api/path?offset=0&limit=20",
                 "type": "foo",
             }],
             "self": {
-                "href": "http://localhost/api/all?limit=20&offset=0"
+                "href": "http://localhost/api/all?offset=0&limit=20",
             },
         }
     })))

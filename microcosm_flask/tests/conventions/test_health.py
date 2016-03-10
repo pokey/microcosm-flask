@@ -19,7 +19,7 @@ def test_health_check():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("app")
+    graph.use("health")
 
     client = graph.flask.test_client()
 
@@ -39,7 +39,7 @@ def test_health_check_custom_check():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("app")
+    graph.use("health")
 
     client = graph.flask.test_client()
 
@@ -63,7 +63,7 @@ def test_health_check_custom_check_failed():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("app")
+    graph.use("health")
 
     client = graph.flask.test_client()
 
