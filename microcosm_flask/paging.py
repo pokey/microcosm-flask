@@ -2,7 +2,6 @@
 Pagination support.
 
 """
-from flask import request
 from marshmallow import fields, Schema
 from microcosm_flask.linking import Link, Links
 from microcosm_flask.operations import Operation
@@ -23,14 +22,6 @@ class PageSchema(Schema):
     offset = fields.Integer(missing=0)
     limit = fields.Integer(missing=20)
 
-    @classmethod
-    def from_request(cls):
-        """
-        Load paginagtion information as a dictionary from the request args (e.g. query string).
-
-        """
-        return cls().load(request.args).data
-
 
 class Page(object):
     def __init__(self, offset, limit):
@@ -49,14 +40,6 @@ class Page(object):
             offset=qs["offset"],
             limit=qs["limit"],
         )
-
-    @classmethod
-    def from_request(cls):
-        """
-        Create a page from a request.
-
-        """
-        return cls.from_query_string(PageSchema.from_request())
 
     def next(self):
         return Page(

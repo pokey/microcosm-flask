@@ -5,9 +5,10 @@ A discovery endpoint provides links to other endpoints.
 from flask import jsonify
 
 from microcosm.api import defaults
+from microcosm_flask.conventions.encoding import load_query_string_data
 from microcosm_flask.linking import Link, Links
 from microcosm_flask.naming import name_for, singleton_path_for
-from microcosm_flask.paging import Page
+from microcosm_flask.paging import Page, PageSchema
 from microcosm_flask.operations import Operation
 
 
@@ -46,11 +47,12 @@ def register_discovery_endpoint(graph, name, operations):
     Register a discovery endpoint for a set of operations.
 
     """
+    page_schema = PageSchema()
 
     @graph.route(singleton_path_for(name), Operation.Discover, name)
     def discover():
         # accept pagination limit from request
-        page = Page.from_request()
+        page = Page.from_query_string(load_query_string_data(page_schema))
         page.offset = 0
 
         return jsonify(

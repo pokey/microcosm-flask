@@ -6,7 +6,7 @@ from flask import jsonify
 
 from microcosm_flask.conventions.encoding import (
     dump_response_data,
-    load_query_data,
+    load_query_string_data,
     load_request_data,
     merge_data,
     require_response_data,
@@ -46,7 +46,7 @@ def register_search_endpoint(graph, obj, func, request_schema, response_schema):
 
     @graph.route(collection_path_for(obj), Operation.Search, obj)
     def search(**path_data):
-        request_data = load_query_data(request_schema)
+        request_data = load_query_string_data(request_schema)
         page = Page.from_query_string(request_data)
         items, count = func(**merge_data(path_data, request_data))
         return jsonify(

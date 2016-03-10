@@ -9,6 +9,7 @@ from hamcrest import (
 )
 
 from microcosm.api import create_object_graph
+from microcosm_flask.conventions.encoding import load_query_string_data
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import Page, PageSchema, PaginatedList
 
@@ -17,7 +18,7 @@ def test_page_from_query_string():
     graph = create_object_graph(name="example", testing=True)
 
     with graph.flask.test_request_context():
-        qs = PageSchema.from_request()
+        qs = load_query_string_data(PageSchema())
         page = Page.from_query_string(qs)
         assert_that(page.offset, is_(equal_to(0)))
         assert_that(page.limit, is_(equal_to(20)))

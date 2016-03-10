@@ -26,14 +26,19 @@ def load_request_data(request_schema, partial=False):
     return request_data.data
 
 
-def load_query_data(request_schema):
+def load_query_string_data(request_schema):
     """
     Load query string data using the given schema.
 
     Schemas are assumbed to be compatible with the `PageSchema`.
 
     """
-    return request_schema.from_request()
+    query_string_data = request.args
+    request_data = request_schema.load(query_string_data)
+    if request_data.errors:
+        # pass the validation errors back in the context
+        raise with_context(BadRequest("Validation error"), dict(errors=request_data.errors))
+    return request_data.data
 
 
 def dump_response_data(response_schema, response_data, status_code=200):
