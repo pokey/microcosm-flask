@@ -29,7 +29,6 @@ def test_health_check():
     assert_that(data, is_(equal_to({
         "name": "example",
         "ok": True,
-        "checks": {},
     })))
 
 
