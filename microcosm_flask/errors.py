@@ -11,6 +11,11 @@ from werkzeug.exceptions import default_exceptions
 error_logger = getLogger("errors")
 
 
+def with_headers(error, headers):
+    setattr(error, "headers", headers)
+    return error
+
+
 def extract_status_code(error):
     """
     Extract an error code from a message.
@@ -68,6 +73,14 @@ def extract_retryable(error):
     return getattr(error, "retryable", False)
 
 
+def extract_headers(error):
+    """
+    Extract HTTP headers to include in response.
+
+    """
+    return getattr(error, "headers",  {})
+
+
 def make_json_error(error):
     """
     Handle errors by logging and
@@ -76,6 +89,7 @@ def make_json_error(error):
     status_code = extract_status_code(error)
     context = extract_context(error)
     retryable = extract_retryable(error)
+    headers = extract_headers(error)
 
     # Flask will not log user exception (fortunately), but will log an error
     # for exceptions that escape out of the application entirely (e.g. if the
@@ -93,6 +107,7 @@ def make_json_error(error):
     }
 
     response = jsonify(**response_data)
+    response.headers = headers
     response.status_code = status_code
     return response
 
