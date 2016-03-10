@@ -13,6 +13,7 @@ from microcosm.api import binding, defaults
 @defaults(
     enable_audit=True,
     enable_cors=True,
+    path_prefix="/api",
 )
 def configure_route_decorator(graph):
     """
@@ -39,7 +40,7 @@ def configure_route_decorator(graph):
                 func = graph.audit(func)
 
             graph.flask.route(
-                path,
+                graph.config.route.path_prefix + path,
                 # for blueprints, the endpoint is operation.value.name
                 # because Flask automatically prefixes blueprint endpoints with "obj."
                 endpoint=operation.name_for(obj),

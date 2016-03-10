@@ -35,7 +35,7 @@ def test_operation_url_for():
 
     with graph.app.test_request_context():
         url = Operation.Search.url_for("foo")
-        assert_that(url, is_(equal_to("/foo")))
+        assert_that(url, is_(equal_to("/api/foo")))
 
 
 def test_operation_href_for():
@@ -51,7 +51,4 @@ def test_operation_href_for():
 
     with graph.app.test_request_context():
         url = Operation.Search.href_for("foo")
-        assert_that(url, is_(equal_to("http://localhost/foo")))
-
-    # XXX add blueprint support
-    # XXX migrate all test endpoints
+        assert_that(url, is_(equal_to("http://localhost/api/foo")))
