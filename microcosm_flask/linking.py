@@ -9,8 +9,6 @@ See: https://tools.ietf.org/html/draft-kelly-json-hal-07
 """
 from werkzeug.routing import BuildError
 
-from microcosm_flask.operations import Operation
-
 
 class Links(object):
     """
