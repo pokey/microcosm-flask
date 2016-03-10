@@ -64,8 +64,8 @@ def merge_data(path_data, request_data):
     Path data wins.
 
     """
-    merged = request_data.copy()
-    merged.update(path_data)
+    merged = request_data.copy() if request_data else {}
+    merged.update(path_data or {})
     return merged
 
 
