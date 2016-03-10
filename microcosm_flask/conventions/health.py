@@ -42,12 +42,14 @@ class Health(object):
             key: bool(value)
             for key, value in self.checks.items()
         }
-        return dict(
+        dct = dict(
             # return the service name helps for routing debugging
             name=self.name,
             ok=all(checks.values()),
-            checks=checks,
         )
+        if checks:
+            dct["checks"] = checks
+        return dct
 
 
 def configure_health(graph):
