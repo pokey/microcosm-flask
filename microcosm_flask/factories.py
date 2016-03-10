@@ -12,7 +12,7 @@ def configure_flask(graph):
     Conventions should refer to `graph.flask` to avoid circular dependencies.
 
     """
-    app = Flask(graph.metadata.name)
+    app = Flask(graph.metadata.import_name)
     app.debug = graph.metadata.debug
     app.testing = graph.metadata.testing
 

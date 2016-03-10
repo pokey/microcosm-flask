@@ -20,7 +20,7 @@ setup(
         "Flask>=0.10.1",
         "Flask-BasicAuth>=0.2.0",
         "flask-cors>=2.1.2",
-        "microcosm>=0.4.0",
+        "microcosm>=0.5.0",
         "microcosm-logging>=0.2.0",
     ],
     setup_requires=[
