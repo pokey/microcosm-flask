@@ -21,7 +21,8 @@ setup(
         "Flask-BasicAuth>=0.2.0",
         "flask-cors>=2.1.2",
         "Flask-UUID>=0.2",
-        "microcosm>=0.5.0",
+        "marshmallow>=2.6.0",
+        "microcosm>=0.5.1",
         "microcosm-logging>=0.2.0",
     ],
     setup_requires=[

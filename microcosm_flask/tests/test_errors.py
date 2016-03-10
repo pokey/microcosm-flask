@@ -51,6 +51,7 @@ def test_werkzeug_http_error():
     assert_that(response.status_code, is_(equal_to(404)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 404,
         "message": "The requested URL was not found on the server.  "
                    "If you entered the URL manually please check your spelling and try again.",
         "retryable": False,
@@ -71,6 +72,7 @@ def test_no_route():
     assert_that(response.status_code, is_(equal_to(404)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 404,
         "message": "The requested URL was not found on the server.  "
                    "If you entered the URL manually please check your spelling and try again.",
         "retryable": False,
@@ -96,6 +98,7 @@ def test_werkzeug_http_error_custom_message():
     assert_that(response.status_code, is_(equal_to(500)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 500,
         "message": "Why me?",
         "retryable": False,
         "context": {},
@@ -120,6 +123,7 @@ def test_custom_error():
     assert_that(response.status_code, is_(equal_to(500)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 500,
         "message": "unexpected",
         "retryable": False,
         "context": {},
@@ -144,6 +148,7 @@ def test_custom_error_status_code():
     assert_that(response.status_code, is_(equal_to(400)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 400,
         "message": "MyValidationError",
         "retryable": False,
         "context": {},
@@ -168,6 +173,7 @@ def test_custom_error_retryable():
     assert_that(response.status_code, is_(equal_to(409)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 409,
         "message": "Conflict",
         "retryable": True,
         "context": {
@@ -200,6 +206,7 @@ def test_error_wrap():
     assert_that(response.status_code, is_(equal_to(500)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
+        "code": 500,
         "message": "fail",
         "retryable": False,
         "context": {}

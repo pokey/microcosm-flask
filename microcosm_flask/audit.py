@@ -8,7 +8,11 @@ from traceback import format_exc
 
 from flask import current_app, request
 
-from microcosm_flask.errors import extract_status_code, extract_error_message
+from microcosm_flask.errors import (
+    extract_context,
+    extract_error_message,
+    extract_status_code,
+)
 
 
 def audit(func):
@@ -39,6 +43,7 @@ def audit(func):
             audit_dict.update(
                 success=False,
                 message=extract_error_message(error)[:2048],
+                context=extract_context(error),
                 stack_trace=format_exc(limit=10),
                 status_code=extract_status_code(error),
             )
