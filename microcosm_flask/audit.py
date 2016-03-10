@@ -24,7 +24,7 @@ def audit(func):
 
         # always include these fields
         audit_dict = dict(
-            operation=request.url_rule.rule,
+            operation=request.endpoint,
             func=func.__name__,
             method=request.method,
         )
