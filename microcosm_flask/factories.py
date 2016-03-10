@@ -4,7 +4,12 @@ Factories to configure Flask.
 """
 from flask import Flask
 
+from microcosm.api import defaults
 
+
+@defaults(
+    port=5000,
+)
 def configure_flask(graph):
     """
     Create the Flask instance (only), bound to the "flask" key.
