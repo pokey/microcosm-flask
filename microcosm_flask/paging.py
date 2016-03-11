@@ -69,12 +69,21 @@ class Page(object):
 
 class PaginatedList(object):
 
-    def __init__(self, obj, page, items, count, schema=None):
+    def __init__(self,
+                 obj,
+                 page,
+                 items,
+                 count,
+                 schema=None,
+                 operation=Operation.Search,
+                 **extra):
         self.obj = obj
         self.page = page
         self.items = items
         self.count = count
         self.schema = schema
+        self.operation = operation
+        self.extra = extra
 
     def to_dict(self):
         return dict(
@@ -88,15 +97,11 @@ class PaginatedList(object):
         )
 
     @property
-    def operation(self):
-        return Operation.Search
-
-    @property
     def links(self):
         links = Links()
-        links["self"] = Link.for_(self.operation, self.obj, qs=self.page.to_tuples())
+        links["self"] = Link.for_(self.operation, self.obj, qs=self.page.to_tuples(), **self.extra)
         if self.page.offset + self.page.limit < self.count:
-            links["next"] = Link.for_(self.operation, self.obj, qs=self.page.next().to_tuples())
+            links["next"] = Link.for_(self.operation, self.obj, qs=self.page.next().to_tuples(), **self.extra)
         if self.page.offset > 0:
-            links["prev"] = Link.for_(self.operation, self.obj, qs=self.page.prev().to_tuples())
+            links["prev"] = Link.for_(self.operation, self.obj, qs=self.page.prev().to_tuples(), **self.extra)
         return links

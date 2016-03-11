@@ -47,7 +47,7 @@ def test_page_prev():
 def test_paginated_list_to_dict():
     graph = create_object_graph(name="example", testing=True)
 
-    @graph.route("/path", Operation.Search, "foo")
+    @graph.route("/foo", Operation.Search, "foo")
     def search_foo():
         pass
 
@@ -64,13 +64,52 @@ def test_paginated_list_to_dict():
             "limit": 2,
             "_links": {
                 "self": {
-                    "href": "http://localhost/api/path?offset=2&limit=2",
+                    "href": "http://localhost/api/foo?offset=2&limit=2",
                 },
                 "next": {
-                    "href": "http://localhost/api/path?offset=4&limit=2",
+                    "href": "http://localhost/api/foo?offset=4&limit=2",
                 },
                 "prev": {
-                    "href": "http://localhost/api/path?offset=0&limit=2",
+                    "href": "http://localhost/api/foo?offset=0&limit=2",
+                },
+            }
+        })))
+
+
+def test_paginated_list_relation_to_dict():
+    graph = create_object_graph(name="example", testing=True)
+
+    @graph.route("/foo/<foo_id>/bar", Operation.SearchFor, ("foo", "bar"))
+    def search_foo():
+        pass
+
+    paginated_list = PaginatedList(
+        ("foo", "bar"),
+        Page(2, 2),
+        ["1", "2"],
+        10,
+        operation=Operation.SearchFor,
+        foo_id="FOO_ID",
+    )
+
+    with graph.flask.test_request_context():
+        assert_that(paginated_list.to_dict(), is_(equal_to({
+            "count": 10,
+            "items": [
+                "1",
+                "2",
+            ],
+            "offset": 2,
+            "limit": 2,
+            "_links": {
+                "self": {
+                    "href": "http://localhost/api/foo/FOO_ID/bar?offset=2&limit=2",
+                },
+                "next": {
+                    "href": "http://localhost/api/foo/FOO_ID/bar?offset=4&limit=2",
+                },
+                "prev": {
+                    "href": "http://localhost/api/foo/FOO_ID/bar?offset=0&limit=2",
                 },
             }
         })))
