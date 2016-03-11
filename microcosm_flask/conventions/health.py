@@ -89,7 +89,7 @@ def configure_health(graph):
 
     health = Health(graph)
 
-    @graph.route(graph.config.health.path_prefix + singleton_path_for(Health), Operation.Retrieve, Health)
+    @graph.route(graph.config.health_convention.path_prefix + singleton_path_for(Health), Operation.Retrieve, Health)
     def current_health():
         dct = health.to_dict()
         response = jsonify(dct)

@@ -80,12 +80,12 @@ def configure_discovery(graph):
     Build a singleton endpoint that provides a link to all search endpoints.
 
     """
-    name = graph.config.discovery.name
-    path_prefix = graph.config.discovery.path_prefix
+    name = graph.config.discovery_convention.name
+    path_prefix = graph.config.discovery_convention.path_prefix
 
     matches = {
         Operation.from_name(operation_name.lower())
-        for operation_name in graph.config.discovery.operations
+        for operation_name in graph.config.discovery_convention.operations
     }
 
     def match_func(operation, obj, rule):
