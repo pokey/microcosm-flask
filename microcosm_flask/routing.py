@@ -6,10 +6,9 @@ Intercepts Flask's normal route registration to inject conventions.
 """
 from flask_cors import cross_origin
 
-from microcosm.api import binding, defaults
+from microcosm.api import defaults
 
 
-@binding("route")
 @defaults(
     converters=[
         "uuid",
