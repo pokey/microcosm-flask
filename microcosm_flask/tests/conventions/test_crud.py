@@ -106,8 +106,8 @@ class TestCrud(object):
             "lastName": "Jones",
         }
         response = self.client.post("/api/person", data=dumps(request_data))
-        self.assert_response(response, 400, {
-            "code": 400,
+        self.assert_response(response, 422, {
+            "code": 422,
             "message": "Validation error",
             "retryable": False,
             "context": {

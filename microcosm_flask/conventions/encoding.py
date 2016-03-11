@@ -3,7 +3,7 @@ Support for encoding and decoding request/response content.
 
 """
 from flask import jsonify, request
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import NotFound, UnprocessableEntity
 
 from microcosm_flask.errors import with_context
 
@@ -22,7 +22,7 @@ def load_request_data(request_schema, partial=False):
     request_data = request_schema.load(json_data, partial=partial)
     if request_data.errors:
         # pass the validation errors back in the context
-        raise with_context(BadRequest("Validation error"), dict(errors=request_data.errors))
+        raise with_context(UnprocessableEntity("Validation error"), dict(errors=request_data.errors))
     return request_data.data
 
 
@@ -37,7 +37,7 @@ def load_query_string_data(request_schema):
     request_data = request_schema.load(query_string_data)
     if request_data.errors:
         # pass the validation errors back in the context
-        raise with_context(BadRequest("Validation error"), dict(errors=request_data.errors))
+        raise with_context(UnprocessableEntity("Validation error"), dict(errors=request_data.errors))
     return request_data.data
 
 
