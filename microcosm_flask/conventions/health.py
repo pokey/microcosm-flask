@@ -8,40 +8,60 @@ using HTTP 200/503 status codes to indicate healthiness.
 from flask import jsonify
 
 from microcosm.api import defaults
+from microcosm_flask.errors import extract_error_message
 from microcosm_flask.naming import singleton_path_for
 from microcosm_flask.operations import Operation
+
+
+class HealthResult(object):
+    def __init__(self, error=None):
+        self.error = error
+
+    def __nonzero__(self):
+        return self.error is None
+
+    def __str__(self):
+        return "ok" if self.error is None else self.error
+
+    def to_dict(self):
+        return {
+            "ok": bool(self),
+            "message": str(self),
+        }
+
+    @classmethod
+    def evaluate(cls, func, graph):
+        try:
+            func(graph)
+            return cls()
+        except Exception as error:
+            return cls(extract_error_message(error))
 
 
 class Health(object):
     """
     Wrapper around service health state.
 
-    May contain zero or more "checks" which are just named booleans.
+    May contain zero or more "checks" which are just callables that take the
+    current object graph as input.
+
     The overall health is OK if all checks are OK.
 
     """
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, graph):
+        self.graph = graph
+        self.name = graph.metadata.name
         self.checks = {}
 
     def to_dict(self):
         """
         Encode the name, the status of all checks, and the current overall status.
 
-        Note that:
-
-            >>> all([])
-            True
-
-        So the default overall status (in the absence of any checks) will be OK.
-
         """
+        # evaluate checks
         checks = {
-            # If desired, synchronous checks can be implemented by providing
-            # an object that implements __len__ or __nonzero__; both will be
-            # evaluted upon boolean evaluation.
-            key: bool(value)
-            for key, value in self.checks.items()
+            key: HealthResult.evaluate(func, self.graph)
+            for key, func in self.checks.items()
         }
         dct = dict(
             # return the service name helps for routing debugging
@@ -49,7 +69,10 @@ class Health(object):
             ok=all(checks.values()),
         )
         if checks:
-            dct["checks"] = checks
+            dct["checks"] = {
+                key: checks[key].to_dict()
+                for key in sorted(checks.keys())
+            }
         return dct
 
 
@@ -64,7 +87,7 @@ def configure_health(graph):
               manipulate health state.
     """
 
-    health = Health(name=graph.metadata.name)
+    health = Health(graph)
 
     @graph.route(graph.config.health.path_prefix + singleton_path_for(Health), Operation.Retrieve, Health)
     def current_health():
