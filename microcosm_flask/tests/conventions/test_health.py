@@ -19,7 +19,7 @@ def test_health_check():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("health")
+    graph.use("health_convention")
 
     client = graph.flask.test_client()
 
@@ -38,11 +38,11 @@ def test_health_check_custom_check():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("health")
+    graph.use("health_convention")
 
     client = graph.flask.test_client()
 
-    graph.health.checks["foo"] = True
+    graph.health_convention.checks["foo"] = lambda graph: None
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(200)))
@@ -51,7 +51,10 @@ def test_health_check_custom_check():
         "name": "example",
         "ok": True,
         "checks": {
-            "foo": True,
+            "foo": {
+                "message": "ok",
+                "ok": True,
+            },
         },
     })))
 
@@ -62,11 +65,14 @@ def test_health_check_custom_check_failed():
 
     """
     graph = create_object_graph(name="example", testing=True)
-    graph.use("health")
+    graph.use("health_convention")
 
     client = graph.flask.test_client()
 
-    graph.health.checks["foo"] = False
+    def fail(graph):
+        raise Exception("failure!")
+
+    graph.health_convention.checks["foo"] = fail
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(503)))
@@ -75,6 +81,9 @@ def test_health_check_custom_check_failed():
         "name": "example",
         "ok": False,
         "checks": {
-            "foo": False,
+            "foo": {
+                "message": "failure!",
+                "ok": False,
+            },
         },
     })))

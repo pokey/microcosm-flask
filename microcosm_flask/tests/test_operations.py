@@ -22,6 +22,15 @@ def test_operation_naming():
     assert_that(operation_name, is_(equal_to("foo.search")))
 
 
+def test_operation_naming_relation():
+    """
+    Operation naming works for relations.
+
+    """
+    operation_name = Operation.SearchFor.name_for(("foo", "bar"))
+    assert_that(operation_name, is_(equal_to("foo.search_for.bar")))
+
+
 def test_operation_url_for():
     """
     Operations can resolve themselves via Flask's `url_for`.

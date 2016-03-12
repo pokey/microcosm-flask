@@ -16,7 +16,7 @@ from microcosm_flask.operations import Operation
 
 def test_discovery():
     graph = create_object_graph(name="example", testing=True)
-    graph.use("discovery")
+    graph.use("discovery_convention")
 
     @graph.route("/path", Operation.Search, "foo")
     def search_foo():

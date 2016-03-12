@@ -32,7 +32,7 @@ def _crud(operation):
 
 
 @_crud(Operation.Search)
-def register_search_endpoint(graph, obj, func, request_schema, response_schema):
+def register_search_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
     """
     Register a search endpoint.
 
@@ -44,7 +44,7 @@ def register_search_endpoint(graph, obj, func, request_schema, response_schema):
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
 
-    @graph.route(collection_path_for(obj), Operation.Search, obj)
+    @graph.route(path_prefix + collection_path_for(obj), Operation.Search, obj)
     def search(**path_data):
         request_data = load_query_string_data(request_schema)
         page = Page.from_query_string(request_data)
@@ -55,7 +55,7 @@ def register_search_endpoint(graph, obj, func, request_schema, response_schema):
 
 
 @_crud(Operation.Create)
-def register_create_endpoint(graph, obj, func, request_schema, response_schema):
+def register_create_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
     """
     Register a create endpoint.
 
@@ -66,7 +66,7 @@ def register_create_endpoint(graph, obj, func, request_schema, response_schema):
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(collection_path_for(obj), Operation.Create, obj)
+    @graph.route(path_prefix + collection_path_for(obj), Operation.Create, obj)
     def create(**path_data):
         request_data = load_request_data(request_schema)
         response_data = func(**merge_data(path_data, request_data))
@@ -74,7 +74,7 @@ def register_create_endpoint(graph, obj, func, request_schema, response_schema):
 
 
 @_crud(Operation.Retrieve)
-def register_retrieve_endpoint(graph, obj, func, response_schema):
+def register_retrieve_endpoint(graph, obj, path_prefix, func, response_schema):
     """
     Register a retrieve endpoint.
 
@@ -84,14 +84,14 @@ def register_retrieve_endpoint(graph, obj, func, response_schema):
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(instance_path_for(obj), Operation.Retrieve, obj)
+    @graph.route(path_prefix + instance_path_for(obj), Operation.Retrieve, obj)
     def retrieve(**path_data):
         response_data = require_response_data(func(**path_data))
         return dump_response_data(response_schema, response_data)
 
 
 @_crud(Operation.Delete)
-def register_delete_endpoint(graph, obj, func):
+def register_delete_endpoint(graph, obj, path_prefix, func):
     """
     Register a delete endpoint.
 
@@ -100,14 +100,14 @@ def register_delete_endpoint(graph, obj, func):
       - return truthy/falsey
 
     """
-    @graph.route(instance_path_for(obj), Operation.Delete, obj)
+    @graph.route(path_prefix + instance_path_for(obj), Operation.Delete, obj)
     def delete(**path_data):
         require_response_data(func(**path_data))
         return "", 204
 
 
 @_crud(Operation.Replace)
-def register_replace_endpoint(graph, obj, func, request_schema, response_schema):
+def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
     """
     Register a replace endpoint.
 
@@ -118,7 +118,7 @@ def register_replace_endpoint(graph, obj, func, request_schema, response_schema)
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(instance_path_for(obj), Operation.Replace, obj)
+    @graph.route(path_prefix + instance_path_for(obj), Operation.Replace, obj)
     def replace(**path_data):
         request_data = load_request_data(request_schema)
         # Replace/put should create a resource if not already present, but we do not
@@ -129,7 +129,7 @@ def register_replace_endpoint(graph, obj, func, request_schema, response_schema)
 
 
 @_crud(Operation.Update)
-def register_update_endpoint(graph, obj, func, request_schema, response_schema):
+def register_update_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
     """
     Register an update endpoint.
 
@@ -140,7 +140,7 @@ def register_update_endpoint(graph, obj, func, request_schema, response_schema):
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(instance_path_for(obj), Operation.Update, obj)
+    @graph.route(path_prefix + instance_path_for(obj), Operation.Update, obj)
     def update(**path_data):
         # NB: using partial here means that marshmallow will not validate required fields
         request_data = load_request_data(request_schema, partial=True)
@@ -148,7 +148,7 @@ def register_update_endpoint(graph, obj, func, request_schema, response_schema):
         return dump_response_data(response_schema, response_data)
 
 
-def configure_crud(graph, obj, mappings):
+def configure_crud(graph, obj, mappings, path_prefix=""):
     """
     Register CRUD endpoints for a resource object.
 
@@ -167,4 +167,4 @@ def configure_crud(graph, obj, mappings):
     """
     for operation, register in CRUD_MAPPINGS.items():
         if operation in mappings:
-            register(graph, obj, *mappings[operation])
+            register(graph, obj, path_prefix, *mappings[operation])

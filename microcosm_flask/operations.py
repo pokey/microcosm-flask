@@ -16,7 +16,11 @@ from microcosm_flask.naming import name_for
 
 
 # metadata for an operation
-OperationInfo = namedtuple("OperationInfo", ["name", "method"])
+OperationInfo = namedtuple("OperationInfo", ["name", "method", "pattern"])
+
+
+NODE_PATTERN = "{}.{}"
+EDGE_PATTERN = "{}.{}.{}"
 
 
 @unique
@@ -27,29 +31,43 @@ class Operation(Enum):
 
     """
     # discovery operation
-    Discover = OperationInfo("discover", "GET")
+    Discover = OperationInfo("discover", "GET", NODE_PATTERN)
 
     # collection operations
-    Search = OperationInfo("search", "GET")
-    Create = OperationInfo("create", "POST")
+    Search = OperationInfo("search", "GET", NODE_PATTERN)
+    Create = OperationInfo("create", "POST", NODE_PATTERN)
     # bulk update is possible here with PATCH
 
     # instance operations
-    Retrieve = OperationInfo("retrieve", "GET")
-    Delete = OperationInfo("delete", "DELETE")
-    Replace = OperationInfo("replace", "PUT")
-    Update = OperationInfo("update", "PATCH")
+    Retrieve = OperationInfo("retrieve", "GET", NODE_PATTERN)
+    Delete = OperationInfo("delete", "DELETE", NODE_PATTERN)
+    Replace = OperationInfo("replace", "PUT", NODE_PATTERN)
+    Update = OperationInfo("update", "PATCH", NODE_PATTERN)
+
+    # relation operations
+    SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN)
 
     def name_for(self, obj):
         """
-        Generate an operation name in the scope of the resource.
+        Generate an operation name in the scope of one or more resources.
 
         This naming convention matches how Flask blueprints routes are resolved
         (assuming that the blueprint and resources share the same name).
 
-        Example: `foo.search`
+        Examples: `foo.search`, `bar.search_for.baz`
+
         """
-        return "{}.{}".format(name_for(obj), self.value.name)
+        if isinstance(obj, (list, tuple)):
+            return self.value.pattern.format(
+                name_for(obj[0]),
+                self.value.name,
+                name_for(obj[1])
+            )
+        else:
+            return self.value.pattern.format(
+                name_for(obj),
+                self.value.name,
+            )
 
     def url_for(self, obj, **kwargs):
         """
