@@ -24,6 +24,7 @@ setup(
         "marshmallow>=2.6.0",
         "microcosm>=0.5.1",
         "microcosm-logging>=0.2.0",
+        "PyYAML>=3.11",
     ],
     setup_requires=[
         "nose>=1.3.6",
@@ -31,6 +32,10 @@ setup(
     dependency_links=[
     ],
     entry_points={
+        "console_scripts": [
+            "compare-resources = microcosm_flask.sync.compare:main",
+            "sync-resources = microcosm_flask.sync.main:main",
+        ],
         "microcosm.factories": [
             "app = microcosm_flask.factories:configure_flask_app",
             "audit = microcosm_flask.audit:configure_audit_decorator",
