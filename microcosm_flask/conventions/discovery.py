@@ -43,7 +43,7 @@ def iter_links(operations, page):
         )
 
 
-def register_discovery_endpoint(graph, name, operations, path_prefix=""):
+def register_discovery_endpoint(graph, name, match_func, path_prefix=""):
     """
     Register a discovery endpoint for a set of operations.
 
@@ -56,11 +56,14 @@ def register_discovery_endpoint(graph, name, operations, path_prefix=""):
         page = Page.from_query_string(load_query_string_data(page_schema))
         page.offset = 0
 
+        operations = list(iter_operations(graph, match_func))
+
         return jsonify(
             _links=Links({
                 "self": Link.for_(Operation.Discover, name, qs=page.to_tuples()),
                 "search": [
                     link for link in iter_links(operations, page)
+
                 ],
             }).to_dict()
         )
@@ -69,7 +72,7 @@ def register_discovery_endpoint(graph, name, operations, path_prefix=""):
 
 
 @defaults(
-    name="all",
+    name="",
     operations=[
         "search",
     ],
@@ -91,4 +94,4 @@ def configure_discovery(graph):
     def match_func(operation, obj, rule):
         return operation in matches
 
-    return register_discovery_endpoint(graph, name, iter_operations(graph, match_func), path_prefix)
+    return register_discovery_endpoint(graph, name, match_func, path_prefix)

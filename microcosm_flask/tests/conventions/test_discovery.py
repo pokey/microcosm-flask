@@ -24,7 +24,7 @@ def test_discovery():
 
     client = graph.flask.test_client()
 
-    response = client.get("/api/all")
+    response = client.get("/api/")
     assert_that(response.status_code, is_(equal_to(200)))
     data = loads(response.get_data())
     assert_that(data, is_(equal_to({
@@ -34,7 +34,7 @@ def test_discovery():
                 "type": "foo",
             }],
             "self": {
-                "href": "http://localhost/api/all?offset=0&limit=20",
+                "href": "http://localhost/api/?offset=0&limit=20",
             },
         }
     })))
