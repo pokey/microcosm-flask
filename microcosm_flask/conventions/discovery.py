@@ -72,7 +72,7 @@ def register_discovery_endpoint(graph, name, match_func, path_prefix=""):
 
 
 @defaults(
-    name="all",
+    name="",
     operations=[
         "search",
     ],
