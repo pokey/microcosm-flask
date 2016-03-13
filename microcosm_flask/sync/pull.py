@@ -59,6 +59,7 @@ def pull_json(args, base_url):
     Pull JSON resources by spidering a base url.
 
     """
+    exclude_first = args.exclude_first
     stack = [base_url]
 
     seen = set()
@@ -71,6 +72,11 @@ def pull_json(args, base_url):
         data = response.json()
 
         for href, resource in iter_resources(data):
+            if exclude_first:
+                # skipping the first resource - if it's a discovery resource - avoids
+                # pushing back state that cannot be persisted
+                exclude_first = False
+                continue
             yield href, sort_links(resource)
 
         for relation, link in iter_links(data):

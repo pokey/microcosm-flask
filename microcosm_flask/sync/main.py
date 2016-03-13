@@ -45,6 +45,12 @@ def parse_args():
         help="Traverse links following one or more patterns",
     )
     parser.add_argument(
+        "--exclude-first",
+        "-x",
+        action="store_true",
+        help="Exclude the first resource from pull output",
+    )
+    parser.add_argument(
         "input",
         help="Input location for resources",
     )
