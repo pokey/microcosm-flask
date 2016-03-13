@@ -2,6 +2,7 @@
 Audit log support for Flask routes.
 
 """
+from logging import getLogger
 from functools import wraps
 from json import loads
 from traceback import format_exc
@@ -22,6 +23,8 @@ def audit(func):
     Generates a JSON record in the Flask log for every request.
 
     """
+    logger = getLogger("audit")
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         response = None
@@ -68,7 +71,7 @@ def audit(func):
         finally:
             # always log at INFO; we can't know whether a raised exception
             # is an error or expected behavior
-            current_app.logger.info(audit_dict)
+            logger.info(audit_dict)
 
     return wrapper
 
