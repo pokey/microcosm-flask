@@ -1,5 +1,5 @@
 """
-Swagger (OpoenAPI) convention.
+Swagger (OpenAPI) convention.
 
 Generates a Swagger definition, as JSON, for registered operations.
 
