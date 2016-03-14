@@ -16,7 +16,7 @@ from microcosm_flask.naming import name_for
 
 
 # metadata for an operation
-OperationInfo = namedtuple("OperationInfo", ["name", "method", "pattern"])
+OperationInfo = namedtuple("OperationInfo", ["name", "method", "pattern", "default_code"])
 
 
 NODE_PATTERN = "{}.{}"
@@ -31,21 +31,21 @@ class Operation(Enum):
 
     """
     # discovery operation
-    Discover = OperationInfo("discover", "GET", NODE_PATTERN)
+    Discover = OperationInfo("discover", "GET", NODE_PATTERN, 200)
 
     # collection operations
-    Search = OperationInfo("search", "GET", NODE_PATTERN)
-    Create = OperationInfo("create", "POST", NODE_PATTERN)
+    Search = OperationInfo("search", "GET", NODE_PATTERN, 200)
+    Create = OperationInfo("create", "POST", NODE_PATTERN, 201)
     # bulk update is possible here with PATCH
 
     # instance operations
-    Retrieve = OperationInfo("retrieve", "GET", NODE_PATTERN)
-    Delete = OperationInfo("delete", "DELETE", NODE_PATTERN)
-    Replace = OperationInfo("replace", "PUT", NODE_PATTERN)
-    Update = OperationInfo("update", "PATCH", NODE_PATTERN)
+    Retrieve = OperationInfo("retrieve", "GET", NODE_PATTERN, 200)
+    Delete = OperationInfo("delete", "DELETE", NODE_PATTERN, 204)
+    Replace = OperationInfo("replace", "PUT", NODE_PATTERN, 200)
+    Update = OperationInfo("update", "PATCH", NODE_PATTERN, 200)
 
     # relation operations
-    SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN)
+    SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN, 200)
 
     def name_for(self, obj):
         """
@@ -104,5 +104,9 @@ class Operation(Enum):
         Convert an operation name back to an operation, obj tuple.
 
         """
-        obj, operation_name = name.split(".", 1)
-        return cls.from_name(operation_name), obj
+        parts = name.split(".")
+        operation = cls.from_name(parts[1])
+        if len(parts) > 2:
+            return operation, parts[0:1] + parts[2:]
+        else:
+            return operation, parts[0]

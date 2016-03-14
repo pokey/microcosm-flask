@@ -111,11 +111,13 @@ class TestCrud(object):
             "message": "Validation error",
             "retryable": False,
             "context": {
-                "errors": {
-                    "firstName": [
+                "errors": [{
+                    "message": "Could not validate field: firstName",
+                    "field": "firstName",
+                    "reasons": [
                         "Missing data for required field.",
                     ],
-                }
+                }]
             }
         })
 

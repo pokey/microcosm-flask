@@ -3,24 +3,33 @@ Pagination support.
 
 """
 from marshmallow import fields, Schema
+
 from microcosm_flask.linking import Link, Links
+from microcosm_flask.naming import name_for
 from microcosm_flask.operations import Operation
 
 
-# NB: it would be nice to use marshmallow schemas in lieu of `to_dict()` functions here
-#
-# The main obstacles are:
-#
-#  - The `Page.to_tuples()` form is needed for query string encoding to ensure consistent
-#    ordering of query string arguments (and have reliable tests).
-#
-#  - The `PaginatedList` would need a different schema for every listed item because
-#    marshmallow's nested support is static.
-
-
 class PageSchema(Schema):
-    offset = fields.Integer(missing=0)
-    limit = fields.Integer(missing=20)
+    offset = fields.Integer(missing=0, default=0)
+    limit = fields.Integer(missing=20, limit=20)
+
+
+def make_paginated_list_schema(obj, obj_schema):
+    """
+    Generate a paginated list schema.
+
+    """
+
+    class PaginatedListSchema(Schema):
+        __alias__ = "{}_list".format(name_for(obj))
+
+        offset = fields.Integer(required=True)
+        limit = fields.Integer(required=True)
+        count = fields.Integer(required=True)
+        items = fields.List(fields.Nested(obj_schema), required=True)
+        links = fields.Raw(dump_to="_links")
+
+    return PaginatedListSchema
 
 
 class Page(object):

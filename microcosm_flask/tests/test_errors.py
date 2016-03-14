@@ -29,7 +29,9 @@ class MyConflictError(Exception):
     @property
     def context(self):
         return dict(
-            resource="Banana!",
+            errors=[
+                dict(message="Banana!"),
+            ],
         )
 
 
@@ -177,7 +179,9 @@ def test_custom_error_retryable():
         "message": "Conflict",
         "retryable": True,
         "context": {
-            "resource": "Banana!",
+            "errors": [{
+                "message": "Banana!",
+            }]
         },
     })))
 
