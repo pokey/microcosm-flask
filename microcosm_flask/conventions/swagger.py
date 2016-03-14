@@ -267,6 +267,7 @@ def build_operation(operation, obj, rule, func):
         parameters=swagger.ParametersList([
         ]),
         responses=swagger.Responses(),
+        tags=[name_for(obj[0] if isinstance(obj, (list, tuple)) else obj)],
     )
 
     # path parameters

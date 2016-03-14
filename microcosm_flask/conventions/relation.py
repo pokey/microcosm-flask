@@ -6,6 +6,7 @@ simplicity these are passed as a pair/tuple.
 
 """
 from flask import jsonify
+from inflection import pluralize
 
 from microcosm_flask.conventions.encoding import (
     load_query_string_data,
@@ -61,7 +62,7 @@ def register_search_relation_endpoint(graph, obj, path_prefix, func, request_sch
             PaginatedList(obj, page, items, count, response_schema, Operation.SearchFor, **context).to_dict()
         )
 
-    search.__doc__ = "Search for {} in relation to a {}".format(name_for(obj[1]), name_for(obj[0]))
+    search.__doc__ = "Search for {} relative to a {}".format(pluralize(name_for(obj[1])), name_for(obj[0]))
 
 
 def configure_relation(graph, from_obj, to_obj, mappings, path_prefix=""):

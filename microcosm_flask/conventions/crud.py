@@ -3,6 +3,7 @@ Conventions for canonical CRUD endpoints.
 
 """
 from flask import jsonify
+from inflection import pluralize
 
 from microcosm_flask.conventions.encoding import (
     dump_response_data,
@@ -59,7 +60,7 @@ def register_search_endpoint(graph, obj, path_prefix, func, request_schema, resp
             PaginatedList(obj, page, items, count, response_schema).to_dict()
         )
 
-    search.__doc__ = "Search the collection of all {}".format(name_for(obj))
+    search.__doc__ = "Search the collection of all {}".format(pluralize(name_for(obj)))
 
 
 @_crud(Operation.Create)
