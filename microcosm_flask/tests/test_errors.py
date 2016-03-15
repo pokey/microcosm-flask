@@ -57,7 +57,7 @@ def test_werkzeug_http_error():
         "message": "The requested URL was not found on the server.  "
                    "If you entered the URL manually please check your spelling and try again.",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
 
 
@@ -78,7 +78,7 @@ def test_no_route():
         "message": "The requested URL was not found on the server.  "
                    "If you entered the URL manually please check your spelling and try again.",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
 
 
@@ -103,7 +103,7 @@ def test_werkzeug_http_error_custom_message():
         "code": 500,
         "message": "Why me?",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
 
 
@@ -128,7 +128,7 @@ def test_custom_error():
         "code": 500,
         "message": "unexpected",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
 
 
@@ -153,7 +153,7 @@ def test_custom_error_status_code():
         "code": 400,
         "message": "MyValidationError",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
 
 
@@ -213,5 +213,5 @@ def test_error_wrap():
         "code": 500,
         "message": "fail",
         "retryable": False,
-        "context": {}
+        "context": {"errors": []}
     })))
