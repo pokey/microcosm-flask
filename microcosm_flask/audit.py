@@ -7,7 +7,7 @@ from functools import wraps
 from json import loads
 from traceback import format_exc
 
-from flask import current_app, request
+from flask import current_app, g, request
 
 from microcosm_flask.errors import (
     extract_context,
@@ -60,7 +60,7 @@ def audit(func):
             )
 
             # include response body on debug (if any)
-            if current_app.debug and body:
+            if current_app.debug and body and not g.get("hide_body"):
                 try:
                     audit_dict["response_body"] = loads(body)
                 except (TypeError, ValueError):

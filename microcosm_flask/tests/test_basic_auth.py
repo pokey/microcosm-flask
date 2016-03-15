@@ -42,7 +42,7 @@ def test_basic_auth():
                    "You either supplied the wrong credentials (e.g. a bad password), or your browser "
                    "doesn't understand how to supply the credentials required.",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
     assert_that(response.headers["WWW-Authenticate"], is_(equal_to('Basic realm="microcosm"')))
 
@@ -71,7 +71,7 @@ def test_basic_auth_default_realm():
                    "You either supplied the wrong credentials (e.g. a bad password), or your browser "
                    "doesn't understand how to supply the credentials required.",
         "retryable": False,
-        "context": {},
+        "context": {"errors": []},
     })))
     assert_that(response.headers["WWW-Authenticate"], is_(equal_to('Basic realm="example"')))
 

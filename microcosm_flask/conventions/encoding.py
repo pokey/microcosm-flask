@@ -3,9 +3,18 @@ Support for encoding and decoding request/response content.
 
 """
 from flask import jsonify, request
+from werkzeug import Headers
 from werkzeug.exceptions import NotFound, UnprocessableEntity
 
-from microcosm_flask.errors import with_context
+
+def with_headers(error, headers):
+    setattr(error, "headers", headers)
+    return error
+
+
+def with_context(error, errors):
+    setattr(error, "context", dict(errors=errors))
+    return error
 
 
 def load_request_data(request_schema, partial=False):
@@ -22,7 +31,13 @@ def load_request_data(request_schema, partial=False):
     request_data = request_schema.load(json_data, partial=partial)
     if request_data.errors:
         # pass the validation errors back in the context
-        raise with_context(UnprocessableEntity("Validation error"), dict(errors=request_data.errors))
+        raise with_context(
+            UnprocessableEntity("Validation error"), [{
+                "message": "Could not validate field: {}".format(field),
+                "field": field,
+                "reasons": reasons
+            } for field, reasons in request_data.errors.items()],
+        )
     return request_data.data
 
 
@@ -41,7 +56,7 @@ def load_query_string_data(request_schema):
     return request_data.data
 
 
-def dump_response_data(response_schema, response_data, status_code=200):
+def dump_response_data(response_schema, response_data, status_code=200, headers=None):
     """
     Dumps response data as JSON using the given schema.
 
@@ -51,8 +66,10 @@ def dump_response_data(response_schema, response_data, status_code=200):
     HTTP 400 and 406 errors.
 
     """
-    response_data = response_schema.dump(response_data).data
+    if response_schema:
+        response_data = response_schema.dump(response_data).data
     response = jsonify(response_data)
+    response.headers = Headers(headers or {})
     response.status_code = status_code
     return response
 

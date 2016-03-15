@@ -6,14 +6,16 @@ simplicity these are passed as a pair/tuple.
 
 """
 from flask import jsonify
+from inflection import pluralize
 
 from microcosm_flask.conventions.encoding import (
     load_query_string_data,
     merge_data,
 )
-from microcosm_flask.naming import relation_path_for
+from microcosm_flask.conventions.registry import qs, response
+from microcosm_flask.naming import name_for, relation_path_for
 from microcosm_flask.operations import Operation
-from microcosm_flask.paging import Page, PaginatedList
+from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_schema
 
 
 # local registry of relation mappings
@@ -45,14 +47,22 @@ def register_search_relation_endpoint(graph, obj, path_prefix, func, request_sch
     :param request_schema: a marshmallow schema to decode/validate query string arguments
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
+
+    paginated_list_schema = make_paginated_list_schema(obj[1], response_schema)()
+
     @graph.route(path_prefix + relation_path_for(*obj), Operation.SearchFor, obj)
+    @qs(request_schema)
+    @response(paginated_list_schema)
     def search(**path_data):
         request_data = load_query_string_data(request_schema)
         page = Page.from_query_string(request_data)
         items, count, context = func(**merge_data(path_data, request_data))
+        # TODO: use the schema for encoding
         return jsonify(
             PaginatedList(obj, page, items, count, response_schema, Operation.SearchFor, **context).to_dict()
         )
+
+    search.__doc__ = "Search for {} relative to a {}".format(pluralize(name_for(obj[1])), name_for(obj[0]))
 
 
 def configure_relation(graph, from_obj, to_obj, mappings, path_prefix=""):

@@ -15,7 +15,7 @@ from werkzeug.routing import BuildError
 # The main obstacles are:
 #
 #  - Links values can be dictionaries (with an "href") or lists of the same.
-#  - Links are encoded in several places; it's a bit more convention to call `to_dict()`
+#  - Links are encoded in several places; it's a bit more convenient to call `to_dict()`
 #    than to instantiate a schema instance in each case.
 
 

@@ -6,27 +6,11 @@ from flask import jsonify
 
 from microcosm.api import defaults
 from microcosm_flask.conventions.encoding import load_query_string_data
+from microcosm_flask.conventions.registry import iter_operations
 from microcosm_flask.linking import Link, Links
 from microcosm_flask.naming import name_for, singleton_path_for
 from microcosm_flask.paging import Page, PageSchema
 from microcosm_flask.operations import Operation
-
-
-def iter_operations(graph, match_func):
-    """
-    Iterate through operations in matches.
-
-    """
-    for rule in graph.flask.url_map.iter_rules():
-        try:
-            operation, obj = Operation.parse(rule.endpoint)
-        except ValueError:
-            # operation follows a different convention (e.g. "static")
-            continue
-        else:
-            # match_func gets access to rule to support path version filtering
-            if match_func(operation, obj, rule):
-                yield operation, obj
 
 
 def iter_links(operations, page):
@@ -34,7 +18,7 @@ def iter_links(operations, page):
     Generate links for an iterable of operations on a starting page.
 
     """
-    for operation, obj in operations:
+    for operation, obj, rule, func in operations:
         yield Link.for_(
             operation=operation,
             obj=obj,

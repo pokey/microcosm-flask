@@ -4,21 +4,28 @@ Generalized error handling.
 """
 from logging import getLogger
 
-from flask import jsonify
+from marshmallow import fields, Schema
 from werkzeug.exceptions import default_exceptions
+
+from microcosm_flask.conventions.encoding import dump_response_data
 
 
 error_logger = getLogger("errors")
 
 
-def with_headers(error, headers):
-    setattr(error, "headers", headers)
-    return error
+class SubErrorSchema(Schema):
+    message = fields.String(required=True)
 
 
-def with_context(error, context):
-    setattr(error, "context", context)
-    return error
+class ErrorContextSchema(Schema):
+    errors = fields.List(fields.Nested(SubErrorSchema), required=True)
+
+
+class ErrorSchema(Schema):
+    message = fields.String(required=True)
+    code = fields.Integer(required=True)
+    retryable = fields.Boolean(required=True)
+    context = fields.Nested(ErrorContextSchema, required=False)
 
 
 def extract_status_code(error):
@@ -64,7 +71,7 @@ def extract_context(error):
     in the response.
 
     """
-    return getattr(error, "context", {})
+    return getattr(error, "context", {"errors": []})
 
 
 def extract_retryable(error):
@@ -111,11 +118,8 @@ def make_json_error(error):
         "message": message,
         "retryable": retryable,
     }
-
-    response = jsonify(**response_data)
-    response.headers = headers
-    response.status_code = status_code
-    return response
+    # Don't pass in the error schema because it will suppress any extra fields
+    return dump_response_data(None, response_data, status_code, headers)
 
 
 def configure_error_handlers(graph):
