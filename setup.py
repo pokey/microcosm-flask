@@ -24,6 +24,7 @@ setup(
         "marshmallow>=2.6.0",
         "microcosm>=0.5.1",
         "microcosm-logging>=0.2.0",
+        "openapi>=0.2.0",
         "PyYAML>=3.11",
     ],
     setup_requires=[
@@ -45,6 +46,7 @@ setup(
             "flask = microcosm_flask.factories:configure_flask",
             "health_convention = microcosm_flask.conventions.health:configure_health",
             "route = microcosm_flask.routing:configure_route_decorator",
+            "swagger_convention = microcosm_flask.conventions.swagger:configure_swagger",
             "uuid = microcosm_flask.converters:configure_uuid",
         ],
     },

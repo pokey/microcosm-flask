@@ -16,7 +16,7 @@ from flask.ext.basicauth import BasicAuth
 from werkzeug.exceptions import Unauthorized
 
 from microcosm.api import defaults
-from microcosm_flask.errors import with_headers
+from microcosm_flask.conventions.encoding import with_headers
 
 
 def encode_basic_auth(username, password):

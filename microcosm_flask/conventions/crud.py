@@ -3,6 +3,7 @@ Conventions for canonical CRUD endpoints.
 
 """
 from flask import jsonify
+from inflection import pluralize
 
 from microcosm_flask.conventions.encoding import (
     dump_response_data,
@@ -11,9 +12,10 @@ from microcosm_flask.conventions.encoding import (
     merge_data,
     require_response_data,
 )
-from microcosm_flask.naming import instance_path_for, collection_path_for
+from microcosm_flask.conventions.registry import qs, request, response
+from microcosm_flask.naming import collection_path_for, instance_path_for, name_for
 from microcosm_flask.operations import Operation
-from microcosm_flask.paging import Page, PaginatedList
+from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_schema
 
 
 # local registry of CRUD mappings
@@ -44,14 +46,21 @@ def register_search_endpoint(graph, obj, path_prefix, func, request_schema, resp
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
 
+    paginated_list_schema = make_paginated_list_schema(obj, response_schema)()
+
     @graph.route(path_prefix + collection_path_for(obj), Operation.Search, obj)
+    @qs(request_schema)
+    @response(paginated_list_schema)
     def search(**path_data):
         request_data = load_query_string_data(request_schema)
         page = Page.from_query_string(request_data)
         items, count = func(**merge_data(path_data, request_data))
+        # TODO: use the schema for encoding
         return jsonify(
             PaginatedList(obj, page, items, count, response_schema).to_dict()
         )
+
+    search.__doc__ = "Search the collection of all {}".format(pluralize(name_for(obj)))
 
 
 @_crud(Operation.Create)
@@ -67,10 +76,14 @@ def register_create_endpoint(graph, obj, path_prefix, func, request_schema, resp
 
     """
     @graph.route(path_prefix + collection_path_for(obj), Operation.Create, obj)
+    @request(request_schema)
+    @response(response_schema)
     def create(**path_data):
         request_data = load_request_data(request_schema)
         response_data = func(**merge_data(path_data, request_data))
-        return dump_response_data(response_schema, response_data, 201)
+        return dump_response_data(response_schema, response_data, Operation.Create.value.default_code)
+
+    create.__doc__ = "Create a new {}".format(name_for(obj))
 
 
 @_crud(Operation.Retrieve)
@@ -85,9 +98,12 @@ def register_retrieve_endpoint(graph, obj, path_prefix, func, response_schema):
 
     """
     @graph.route(path_prefix + instance_path_for(obj), Operation.Retrieve, obj)
+    @response(response_schema)
     def retrieve(**path_data):
         response_data = require_response_data(func(**path_data))
         return dump_response_data(response_schema, response_data)
+
+    retrieve.__doc__ = "Retrieve a {} by id".format(name_for(obj))
 
 
 @_crud(Operation.Delete)
@@ -103,7 +119,9 @@ def register_delete_endpoint(graph, obj, path_prefix, func):
     @graph.route(path_prefix + instance_path_for(obj), Operation.Delete, obj)
     def delete(**path_data):
         require_response_data(func(**path_data))
-        return "", 204
+        return "", Operation.Delete.value.default_code
+
+    delete.__doc__ = "Delete a {} by id".format(name_for(obj))
 
 
 @_crud(Operation.Replace)
@@ -119,6 +137,8 @@ def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, res
 
     """
     @graph.route(path_prefix + instance_path_for(obj), Operation.Replace, obj)
+    @request(request_schema)
+    @response(response_schema)
     def replace(**path_data):
         request_data = load_request_data(request_schema)
         # Replace/put should create a resource if not already present, but we do not
@@ -126,6 +146,8 @@ def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, res
         # will raise a 404.
         response_data = require_response_data(func(**merge_data(path_data, request_data)))
         return dump_response_data(response_schema, response_data)
+
+    replace.__doc__ = "Create or update a {} by id".format(name_for(obj))
 
 
 @_crud(Operation.Update)
@@ -141,11 +163,15 @@ def register_update_endpoint(graph, obj, path_prefix, func, request_schema, resp
 
     """
     @graph.route(path_prefix + instance_path_for(obj), Operation.Update, obj)
+    @request(request_schema)
+    @response(response_schema)
     def update(**path_data):
         # NB: using partial here means that marshmallow will not validate required fields
         request_data = load_request_data(request_schema, partial=True)
         response_data = require_response_data(func(**merge_data(path_data, request_data)))
         return dump_response_data(response_schema, response_data)
+
+    update.__doc__ = "Update some or all of a {} by id".format(name_for(obj))
 
 
 def configure_crud(graph, obj, mappings, path_prefix=""):
