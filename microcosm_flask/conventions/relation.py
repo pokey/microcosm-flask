@@ -48,7 +48,7 @@ def register_search_relation_endpoint(graph, obj, path_prefix, func, request_sch
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
 
-    paginated_list_schema = make_paginated_list_schema(obj, response_schema)()
+    paginated_list_schema = make_paginated_list_schema(obj[1], response_schema)()
 
     @graph.route(path_prefix + relation_path_for(*obj), Operation.SearchFor, obj)
     @qs(request_schema)
