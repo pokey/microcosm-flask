@@ -3,6 +3,7 @@ Support for encoding and decoding request/response content.
 
 """
 from flask import jsonify, request
+from werkzeug import Headers
 from werkzeug.exceptions import NotFound, UnprocessableEntity
 
 
@@ -68,7 +69,7 @@ def dump_response_data(response_schema, response_data, status_code=200, headers=
     if response_schema:
         response_data = response_schema.dump(response_data).data
     response = jsonify(response_data)
-    response.headers = headers
+    response.headers = Headers(headers or {})
     response.status_code = status_code
     return response
 
