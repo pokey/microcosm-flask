@@ -21,7 +21,7 @@ def make_paginated_list_schema(obj, obj_schema):
     """
 
     class PaginatedListSchema(Schema):
-        __alias__ = "{}_list".format(name_for(obj))
+        __alias__ = "{}_list".format(name_for(obj[0] if isinstance(obj, (list, tuple)) else obj))
 
         offset = fields.Integer(required=True)
         limit = fields.Integer(required=True)
