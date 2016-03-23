@@ -1,0 +1,131 @@
+"""
+Command operation tests.
+
+"""
+from json import dumps, loads
+from hamcrest import (
+    assert_that,
+    equal_to,
+    is_,
+)
+
+from marshmallow import fields, Schema
+from microcosm.api import create_object_graph
+
+from microcosm_flask.conventions.encoding import dump_response_data, load_request_data
+from microcosm_flask.conventions.registry import request, response
+from microcosm_flask.conventions.swagger import register_swagger_endpoint
+from microcosm_flask.operations import Operation
+
+
+class CommandArgumentSchema(Schema):
+    value = fields.String(required=True)
+
+
+class CommandResultSchema(Schema):
+    result = fields.Boolean(required=True)
+    value = fields.String(required=True)
+
+
+def make_command(graph, request_schema, response_schema):
+    """
+    Create an example command route.
+
+    """
+
+    @graph.route("/v1/foo/do", Operation.Command, "foo")
+    @request(request_schema)
+    @response(response_schema)
+    def foo_command():
+        """
+        My doc string
+        """
+        request_data = load_request_data(request_schema)
+        response_data = dict(
+            result=True,
+            value=request_data["value"],
+        )
+        return dump_response_data(response_schema, response_data, Operation.Command.value.default_code)
+
+
+class TestCommand(object):
+
+    def setup(self):
+        self.graph = create_object_graph(name="example", testing=True)
+
+        make_command(self.graph, CommandArgumentSchema(), CommandResultSchema())
+
+        self.client = self.graph.flask.test_client()
+
+    def test_url_for(self):
+        """
+        The operation knowns how to resolve a URI for this command.
+
+        """
+        with self.graph.flask.test_request_context():
+            assert_that(Operation.Command.url_for("foo"), is_(equal_to("/api/v1/foo/do")))
+
+    def test_command(self):
+        """
+        The command can take advantage of boilerplate encoding/decoding.
+
+        """
+        uri = "/api/v1/foo/do"
+        request_data = {
+            "value": "bar",
+        }
+        response = self.client.post(uri, data=dumps(request_data))
+        assert_that(response.status_code, is_(equal_to(200)))
+        assert_that(loads(response.get_data()), is_(equal_to({
+            "result": True,
+            "value": "bar",
+        })))
+
+    def test_swagger(self):
+        """
+        Swagger definitions including this operation.
+
+        """
+        base_path = "/api"
+        path_prefix = "/v1"
+
+        def match_func(operation, obj, rule):
+            return (
+                rule.rule.startswith(base_path + path_prefix) and
+                operation == Operation.Command
+            )
+
+        register_swagger_endpoint(self.graph, "swagger", "v1", path_prefix, match_func)
+
+        response = self.client.get("/api/v1/swagger")
+        assert_that(response.status_code, is_(equal_to(200)))
+        swagger = loads(response.get_data())
+        assert_that(swagger["paths"], is_(equal_to({
+            "/foo/do": {
+                "post": {
+                    "tags": ["foo"],
+                    "responses": {
+                        "default": {
+                            "description": "An error occcurred", "schema": {
+                                "$ref": "#/definitions/Error",
+                            }
+                        },
+                        "200": {
+                            "description": "My doc string",
+                            "schema": {
+                                "$ref": "#/definitions/CommandResult",
+                            }
+                        }
+                    },
+                    "parameters": [{
+                        "schema": {
+                            "$ref": "#/definitions/CommandArgument",
+                        },
+                        "name": "body",
+                        "in": "body",
+                    }
+                    ],
+                    "operationId": "command",
+                }
+            }
+        })))

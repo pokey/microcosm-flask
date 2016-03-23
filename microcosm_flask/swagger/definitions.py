@@ -192,9 +192,15 @@ def add_responses(swagger_operation, operation, obj, func):
         description="An error occcurred",
         resource=type_name(name_for(ErrorSchema())),
     )
+
+    if hasattr(func, "__doc__"):
+        description = func.__doc__.strip().splitlines()[0]
+    else:
+        description = "{} {}".format(operation.value.name, name_for(obj))
+
     # resources response
     swagger_operation.responses[str(operation.value.default_code)] = build_response(
-        description=getattr(func, "__doc__") or "{} {}".format(operation.value.name, name_for(obj)),
+        description=description,
         resource=get_response_schema(func),
     )
 
