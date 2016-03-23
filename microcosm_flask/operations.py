@@ -47,6 +47,10 @@ class Operation(Enum):
     # relation operations
     SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN, 200)
 
+    # ad hoc operations
+    Command = OperationInfo("command", "POST", NODE_PATTERN, 200)
+    Query = OperationInfo("query", "GET", NODE_PATTERN, 200)
+
     def name_for(self, obj):
         """
         Generate an operation name in the scope of one or more resources.
