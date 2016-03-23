@@ -2,7 +2,7 @@
 Query operation tests.
 
 """
-from json import dumps, loads
+from json import loads
 from hamcrest import (
     assert_that,
     equal_to,

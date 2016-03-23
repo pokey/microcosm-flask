@@ -14,7 +14,6 @@ from microcosm.api import create_object_graph
 
 from microcosm_flask.conventions.encoding import dump_response_data, load_request_data
 from microcosm_flask.conventions.registry import request, response
-from microcosm_flask.conventions.swagger import register_swagger_endpoint
 from microcosm_flask.operations import Operation
 
 
@@ -51,7 +50,18 @@ def make_command(graph, request_schema, response_schema):
 class TestCommand(object):
 
     def setup(self):
-        self.graph = create_object_graph(name="example", testing=True)
+        # override configuration to use "query" operations for swagger
+        def loader(metadata):
+            return dict(
+                swagger_convention=dict(
+                    # default behavior appends this list to defaults; use a tuple to override
+                    operations=["command"],
+                    version="v1",
+                ),
+            )
+
+        self.graph = create_object_graph(name="example", testing=True, loader=loader)
+        self.graph.use("swagger_convention")
 
         make_command(self.graph, CommandArgumentSchema(), CommandResultSchema())
 
@@ -86,17 +96,6 @@ class TestCommand(object):
         Swagger definitions including this operation.
 
         """
-        base_path = "/api"
-        path_prefix = "/v1"
-
-        def match_func(operation, obj, rule):
-            return (
-                rule.rule.startswith(base_path + path_prefix) and
-                operation == Operation.Command
-            )
-
-        register_swagger_endpoint(self.graph, "swagger", "v1", path_prefix, match_func)
-
         response = self.client.get("/api/v1/swagger")
         assert_that(response.status_code, is_(equal_to(200)))
         swagger = loads(response.get_data())
