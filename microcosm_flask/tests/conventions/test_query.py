@@ -15,10 +15,9 @@ from microcosm.api import create_object_graph
 from microcosm_flask.conventions.encoding import dump_response_data, load_query_string_data
 from microcosm_flask.conventions.registry import qs, response
 from microcosm_flask.operations import Operation
-from microcosm_flask.paging import PageSchema
 
 
-class QueryStringSchema(PageSchema):
+class QueryStringSchema(Schema):
     value = fields.String(required=True)
 
 
@@ -118,21 +117,9 @@ class TestQuery(object):
                     },
                     "parameters": [{
                         "required": False,
-                        "in": "query",
-                        "type": "integer",
-                        "name": "limit",
-                        "format": "int32",
-                    }, {
-                        "required": False,
                         "type": "string",
                         "name": "value",
                         "in": "query",
-                    }, {
-                        "required": False,
-                        "in": "query",
-                        "type": "integer",
-                        "name": "offset",
-                        "format": "int32",
                     }],
                     "operationId": "query",
                 }
