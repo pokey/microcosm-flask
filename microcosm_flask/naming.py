@@ -50,7 +50,7 @@ def instance_path_for(name):
     Get a path for thing.
 
     """
-    return "/{}/<uuid(strict=False):{}_id>".format(
+    return "/{}/<uuid:{}_id>".format(
         name_for(name),
         name_for(name),
     )
@@ -61,7 +61,7 @@ def relation_path_for(from_name, to_name):
     Get a path relating a thing to another.
 
     """
-    return "/{}/<uuid(strict=False):{}_id>/{}".format(
+    return "/{}/<uuid:{}_id>/{}".format(
         name_for(from_name),
         name_for(from_name),
         name_for(to_name),
