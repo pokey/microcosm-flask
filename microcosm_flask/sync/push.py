@@ -5,7 +5,7 @@ Push resource definitions to an output destination.
 from json import dumps
 from logging import getLogger
 from sys import stdout
-from urlparse import urljoin
+from urlparse import urlparse, urlunparse
 
 from requests import put
 from yaml import safe_dump_all
@@ -33,14 +33,20 @@ def push_json(inputs, base_url):
     if our conventions support it.
 
     """
+    parsed_base_url = urlparse(base_url)
+
     for href, resource in inputs:
         # Skip over links-only (discovery) resources
         if resource.keys() == ["_links"]:
             continue
 
-        # Note that `urljoin` will only use the *base* URL of the destination.
-        # If we need more control over URI paths, we'll need to use a different function.
-        uri = urljoin(base_url, href)
+        # Inject the base URL's scheme and netloc; `urljoin` should do exactly this operation,
+        # but actually won't if the right-hand-side term defines its own netloc
+        parsed_href = urlparse(href)
+        uri = urlunparse(parsed_href._replace(
+            scheme=parsed_base_url.scheme,
+            netloc=parsed_base_url.netloc,
+        ))
         push_resource_json(uri, resource)
 
 
