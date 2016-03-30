@@ -9,10 +9,12 @@ from flask import jsonify
 from inflection import pluralize
 
 from microcosm_flask.conventions.encoding import (
+    dump_response_data,
     load_query_string_data,
+    load_request_data,
     merge_data,
 )
-from microcosm_flask.conventions.registry import qs, response
+from microcosm_flask.conventions.registry import qs, request, response
 from microcosm_flask.naming import name_for, relation_path_for
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_schema
@@ -31,6 +33,29 @@ def _relation(operation):
         RELATION_MAPPINGS[operation] = func
         return func
     return decorator
+
+
+@_relation(Operation.CreateFor)
+def register_createfor_relation_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+    """
+    Register a create-for relation endpoint.
+
+    :param func: a store create function, which must:
+      - accept kwargs for the new instance creation parameters
+      - return the created instance
+
+    :param request_schema: a marshmallow schema to decode/validate instance creation parameters
+    :param response_schema: a marshmallow schema to encode the created instance
+    """
+    @graph.route(path_prefix + relation_path_for(*obj), Operation.CreateFor, obj)
+    @request(request_schema)
+    @response(response_schema)
+    def create(**path_data):
+        request_data = load_request_data(request_schema)
+        response_data = func(**merge_data(path_data, request_data))
+        return dump_response_data(response_schema, response_data, Operation.CreateFor.value.default_code)
+
+    create.__doc__ = "Create a new {} relative to a {}".format(pluralize(name_for(obj[1])), name_for(obj[0]))
 
 
 @_relation(Operation.SearchFor)

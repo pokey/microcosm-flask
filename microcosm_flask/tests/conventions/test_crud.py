@@ -101,6 +101,29 @@ class TestCrud(object):
             },
         })
 
+    def test_create_empty_object(self):
+        response = self.client.post("/api/person", data='{}')
+        self.assert_response(response, 422, {
+            "code": 422,
+            "message": "Validation error",
+            "retryable": False,
+            "context": {
+                "errors": [{
+                    "message": "Could not validate field: lastName",
+                    "field": "lastName",
+                    "reasons": [
+                        "Missing data for required field.",
+                    ],
+                }, {
+                    "message": "Could not validate field: firstName",
+                    "field": "firstName",
+                    "reasons": [
+                        "Missing data for required field.",
+                    ],
+                }]
+            }
+        })
+
     def test_create_malformed(self):
         request_data = {
             "lastName": "Jones",
