@@ -45,6 +45,7 @@ class Operation(Enum):
     Update = OperationInfo("update", "PATCH", NODE_PATTERN, 200)
 
     # relation operations
+    CreateFor = OperationInfo("create_for", "POST", EDGE_PATTERN, 201)
     SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN, 200)
 
     # ad hoc operations

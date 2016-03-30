@@ -27,7 +27,7 @@ def load_request_data(request_schema, partial=False):
     HTTP 400 and 415 errors.
 
     """
-    json_data = request.get_json(force=True)
+    json_data = request.get_json(force=True) or {}
     request_data = request_schema.load(json_data, partial=partial)
     if request_data.errors:
         # pass the validation errors back in the context
