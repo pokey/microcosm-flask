@@ -40,10 +40,12 @@ def register_createfor_relation_endpoint(graph, obj, path_prefix, func, request_
     """
     Register a create-for relation endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a store create function, which must:
       - accept kwargs for the new instance creation parameters
       - return the created instance
-
     :param request_schema: a marshmallow schema to decode/validate instance creation parameters
     :param response_schema: a marshmallow schema to encode the created instance
     """
@@ -63,12 +65,14 @@ def register_search_relation_endpoint(graph, obj, path_prefix, func, request_sch
     """
     Register a relation endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a search function, which must:
       - accept kwargs for the query string (minimally for pagination)
       - return a tuple of (items, count, context) where count is the total number of items
         available (in the case of pagination) and context is a dictionary providing any
         needed context variables for constructing pagination links
-
     :param request_schema: a marshmallow schema to decode/validate query string arguments
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
