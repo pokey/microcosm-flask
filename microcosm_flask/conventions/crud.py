@@ -38,6 +38,9 @@ def register_search_endpoint(graph, obj, path_prefix, func, request_schema, resp
     """
     Register a search endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a search function, which must:
       - accept kwargs for the query string (minimally for pagination)
       - return a tuple of (items, count) where count is the total number of items
@@ -68,6 +71,9 @@ def register_create_endpoint(graph, obj, path_prefix, func, request_schema, resp
     """
     Register a create endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a create function, which must:
       - accept kwargs for the request and path data
       - return a new item
@@ -91,6 +97,9 @@ def register_retrieve_endpoint(graph, obj, path_prefix, func, response_schema):
     """
     Register a retrieve endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a retrieve function, which must:
       - accept kwargs for path data
       - return an item or falsey
@@ -111,6 +120,9 @@ def register_delete_endpoint(graph, obj, path_prefix, func):
     """
     Register a delete endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a delete function, which must:
       - accept kwargs for path data
       - return truthy/falsey
@@ -129,6 +141,9 @@ def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, res
     """
     Register a replace endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: a replace function, which must:
       - accept kwargs for the request and path data
       - return the replaced item
@@ -155,6 +170,9 @@ def register_update_endpoint(graph, obj, path_prefix, func, request_schema, resp
     """
     Register an update endpoint.
 
+    :param graph: the object graph
+    :param obj: the target resource or resource name
+    :param path_prefix: the routing path prefix
     :param func: an update function, which must:
       - accept kwargs for the request and path data
       - return an updated item
