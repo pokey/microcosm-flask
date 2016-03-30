@@ -2,7 +2,7 @@
 
 Opinionated Flask services.
 
-[![Circle CI](https://circleci.com/gh/globality-corp/microcosm-flask/tree/develop.svg?style=svg)](https://circleci.com/gh/globality-corp/microcosm-logging/tree/develop)
+[![Circle CI](https://circleci.com/gh/globality-corp/microcosm-flask/tree/develop.svg?style=svg)](https://circleci.com/gh/globality-corp/microcosm-flask/tree/develop)
 
 
 ## Conventions
