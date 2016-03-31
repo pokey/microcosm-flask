@@ -6,6 +6,7 @@ from json import dumps, loads
 
 from hamcrest import (
     assert_that,
+    contains_inanyorder,
     equal_to,
     is_,
 )
@@ -100,6 +101,26 @@ class TestCrud(object):
                 }
             },
         })
+
+    def test_create_empty_object(self):
+        response = self.client.post("/api/person", data='{}')
+        self.assert_response(response, 422)
+        response_data = loads(response.get_data())
+        assert_that(response_data["context"]["errors"], contains_inanyorder(
+            {
+                "message": "Could not validate field: lastName",
+                "field": "lastName",
+                "reasons": [
+                    "Missing data for required field.",
+                ],
+            }, {
+                "message": "Could not validate field: firstName",
+                "field": "firstName",
+                "reasons": [
+                    "Missing data for required field.",
+                ],
+            }
+        ))
 
     def test_create_malformed(self):
         request_data = {
