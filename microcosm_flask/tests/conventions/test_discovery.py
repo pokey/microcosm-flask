@@ -11,6 +11,7 @@ from hamcrest import (
 )
 
 from microcosm.api import create_object_graph
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 
 
@@ -18,7 +19,9 @@ def test_discovery():
     graph = create_object_graph(name="example", testing=True)
     graph.use("discovery_convention")
 
-    @graph.route("/path", Operation.Search, "foo")
+    ns = Namespace("foo")
+
+    @graph.route(ns.collection_path, Operation.Search, ns)
     def search_foo():
         pass
 
@@ -30,7 +33,7 @@ def test_discovery():
     assert_that(data, is_(equal_to({
         "_links": {
             "search": [{
-                "href": "http://localhost/api/path?offset=0&limit=20",
+                "href": "http://localhost/api/foo?offset=0&limit=20",
                 "type": "foo",
             }],
             "self": {

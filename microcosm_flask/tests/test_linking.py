@@ -10,7 +10,7 @@ from hamcrest import (
 
 from microcosm.api import create_object_graph
 from microcosm_flask.linking import Link, Links
-from microcosm_flask.naming import collection_path_for, instance_path_for
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 
 
@@ -47,8 +47,22 @@ def test_templated_link_to_dict():
 
 def test_link_for_operation():
     graph = create_object_graph(name="example", testing=True)
+    ns = Namespace("foo")
 
-    @graph.route(collection_path_for("foo"), Operation.Search, "foo")
+    @graph.route(ns.collection_path, Operation.Search, ns)
+    def func():
+        pass
+
+    with graph.app.test_request_context():
+        link = Link.for_(Operation.Search, ns)
+        assert_that(link.href, is_(equal_to("http://localhost/api/foo")))
+
+
+def test_link_for_operation_without_namespace():
+    graph = create_object_graph(name="example", testing=True)
+    ns = Namespace("foo")
+
+    @graph.route(ns.collection_path, Operation.Search, ns)
     def func():
         pass
 
@@ -59,25 +73,27 @@ def test_link_for_operation():
 
 def test_link_for_operation_with_query_string():
     graph = create_object_graph(name="example", testing=True)
+    ns = Namespace("foo")
 
-    @graph.route(collection_path_for("foo"), Operation.Search, "foo")
+    @graph.route(ns.collection_path, Operation.Search, ns)
     def func():
         pass
 
     with graph.app.test_request_context():
-        link = Link.for_(Operation.Search, "foo", qs=dict(bar="baz"))
+        link = Link.for_(Operation.Search, ns, qs=dict(bar="baz"))
         assert_that(link.href, is_(equal_to("http://localhost/api/foo?bar=baz")))
 
 
 def test_link_for_operation_templated():
     graph = create_object_graph(name="example", testing=True)
+    ns = Namespace("foo")
 
-    @graph.route(instance_path_for("foo"), Operation.Retrieve, "foo")
+    @graph.route(ns.instance_path, Operation.Retrieve, ns)
     def func():
         pass
 
     with graph.app.test_request_context():
-        link = Link.for_(Operation.Retrieve, "foo", allow_templates=True)
+        link = Link.for_(Operation.Retrieve, ns, allow_templates=True)
         assert_that(link.href, is_(equal_to("http://localhost/api/foo/{}".format("{foo_id}"))))
 
 

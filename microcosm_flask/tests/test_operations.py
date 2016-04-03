@@ -8,56 +8,13 @@ from hamcrest import (
     is_,
 )
 
-from microcosm.api import create_object_graph
-from microcosm_flask.naming import collection_path_for
 from microcosm_flask.operations import Operation
 
 
-def test_operation_naming():
+def test_from_name():
     """
-    Operation naming works.
-
-    """
-    operation_name = Operation.Search.name_for("foo")
-    assert_that(operation_name, is_(equal_to("foo.search")))
-
-
-def test_operation_naming_relation():
-    """
-    Operation naming works for relations.
+    Operations can be looked up by name.
 
     """
-    operation_name = Operation.SearchFor.name_for(("foo", "bar"))
-    assert_that(operation_name, is_(equal_to("foo.search_for.bar")))
-
-
-def test_operation_url_for():
-    """
-    Operations can resolve themselves via Flask's `url_for`.
-
-    """
-    graph = create_object_graph(name="example", testing=True)
-
-    @graph.route(collection_path_for("foo"), Operation.Search, "foo")
-    def search_foo():
-        pass
-
-    with graph.app.test_request_context():
-        url = Operation.Search.url_for("foo")
-        assert_that(url, is_(equal_to("/api/foo")))
-
-
-def test_operation_href_for():
-    """
-    Operations can resolve themselves as fully expanded hrefs.
-
-    """
-    graph = create_object_graph(name="example", testing=True)
-
-    @graph.route(collection_path_for("foo"), Operation.Search, "foo")
-    def search_foo():
-        pass
-
-    with graph.app.test_request_context():
-        url = Operation.Search.href_for("foo")
-        assert_that(url, is_(equal_to("http://localhost/api/foo")))
+    assert_that(Operation.from_name("search"), is_(equal_to(Operation.Search)))
+    assert_that(Operation.from_name("Create"), is_(equal_to(Operation.Create)))

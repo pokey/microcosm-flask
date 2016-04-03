@@ -13,7 +13,7 @@ from microcosm_flask.conventions.encoding import (
     require_response_data,
 )
 from microcosm_flask.conventions.registry import qs, request, response
-from microcosm_flask.naming import collection_path_for, instance_path_for, name_for
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_schema
 
@@ -34,13 +34,12 @@ def _crud(operation):
 
 
 @_crud(Operation.Search)
-def register_search_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+def register_search_endpoint(graph, ns, func, request_schema, response_schema):
     """
     Register a search endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
+    :param ns: the namespace
     :param func: a search function, which must:
       - accept kwargs for the query string (minimally for pagination)
       - return a tuple of (items, count) where count is the total number of items
@@ -49,9 +48,9 @@ def register_search_endpoint(graph, obj, path_prefix, func, request_schema, resp
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
 
-    paginated_list_schema = make_paginated_list_schema(obj, response_schema)()
+    paginated_list_schema = make_paginated_list_schema(ns, response_schema)()
 
-    @graph.route(path_prefix + collection_path_for(obj), Operation.Search, obj)
+    @graph.route(ns.collection_path, Operation.Search, ns)
     @qs(request_schema)
     @response(paginated_list_schema)
     def search(**path_data):
@@ -60,20 +59,19 @@ def register_search_endpoint(graph, obj, path_prefix, func, request_schema, resp
         items, count = func(**merge_data(path_data, request_data))
         # TODO: use the schema for encoding
         return jsonify(
-            PaginatedList(obj, page, items, count, response_schema).to_dict()
+            PaginatedList(ns, page, items, count, response_schema).to_dict()
         )
 
-    search.__doc__ = "Search the collection of all {}".format(pluralize(name_for(obj)))
+    search.__doc__ = "Search the collection of all {}".format(pluralize(ns.subject_name))
 
 
 @_crud(Operation.Create)
-def register_create_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+def register_create_endpoint(graph, ns, func, request_schema, response_schema):
     """
     Register a create endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
+    :param ns: the namespace
     :param func: a create function, which must:
       - accept kwargs for the request and path data
       - return a new item
@@ -81,7 +79,7 @@ def register_create_endpoint(graph, obj, path_prefix, func, request_schema, resp
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(path_prefix + collection_path_for(obj), Operation.Create, obj)
+    @graph.route(ns.collection_path, Operation.Create, ns)
     @request(request_schema)
     @response(response_schema)
     def create(**path_data):
@@ -89,61 +87,58 @@ def register_create_endpoint(graph, obj, path_prefix, func, request_schema, resp
         response_data = func(**merge_data(path_data, request_data))
         return dump_response_data(response_schema, response_data, Operation.Create.value.default_code)
 
-    create.__doc__ = "Create a new {}".format(name_for(obj))
+    create.__doc__ = "Create a new {}".format(ns.subject_name)
 
 
 @_crud(Operation.Retrieve)
-def register_retrieve_endpoint(graph, obj, path_prefix, func, response_schema):
+def register_retrieve_endpoint(graph, ns, func, response_schema):
     """
     Register a retrieve endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
+    :param ns: the namespace
     :param func: a retrieve function, which must:
       - accept kwargs for path data
       - return an item or falsey
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(path_prefix + instance_path_for(obj), Operation.Retrieve, obj)
+    @graph.route(ns.instance_path, Operation.Retrieve, ns)
     @response(response_schema)
     def retrieve(**path_data):
         response_data = require_response_data(func(**path_data))
         return dump_response_data(response_schema, response_data)
 
-    retrieve.__doc__ = "Retrieve a {} by id".format(name_for(obj))
+    retrieve.__doc__ = "Retrieve a {} by id".format(ns.subject_name)
 
 
 @_crud(Operation.Delete)
-def register_delete_endpoint(graph, obj, path_prefix, func):
+def register_delete_endpoint(graph, ns, func):
     """
     Register a delete endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
+    :param ns: the namespace
     :param func: a delete function, which must:
       - accept kwargs for path data
       - return truthy/falsey
 
     """
-    @graph.route(path_prefix + instance_path_for(obj), Operation.Delete, obj)
+    @graph.route(ns.instance_path, Operation.Delete, ns)
     def delete(**path_data):
         require_response_data(func(**path_data))
         return "", Operation.Delete.value.default_code
 
-    delete.__doc__ = "Delete a {} by id".format(name_for(obj))
+    delete.__doc__ = "Delete a {} by id".format(ns.subject_name)
 
 
 @_crud(Operation.Replace)
-def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+def register_replace_endpoint(graph, ns, func, request_schema, response_schema):
     """
     Register a replace endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
+    :param ns: the namespace
     :param func: a replace function, which must:
       - accept kwargs for the request and path data
       - return the replaced item
@@ -151,7 +146,7 @@ def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, res
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(path_prefix + instance_path_for(obj), Operation.Replace, obj)
+    @graph.route(ns.instance_path, Operation.Replace, ns)
     @request(request_schema)
     @response(response_schema)
     def replace(**path_data):
@@ -162,11 +157,11 @@ def register_replace_endpoint(graph, obj, path_prefix, func, request_schema, res
         response_data = require_response_data(func(**merge_data(path_data, request_data)))
         return dump_response_data(response_schema, response_data)
 
-    replace.__doc__ = "Create or update a {} by id".format(name_for(obj))
+    replace.__doc__ = "Create or update a {} by id".format(ns.subject_name)
 
 
 @_crud(Operation.Update)
-def register_update_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+def register_update_endpoint(graph, ns, func, request_schema, response_schema):
     """
     Register an update endpoint.
 
@@ -180,7 +175,7 @@ def register_update_endpoint(graph, obj, path_prefix, func, request_schema, resp
     :param response_schema: a marshmallow schema to encode response data
 
     """
-    @graph.route(path_prefix + instance_path_for(obj), Operation.Update, obj)
+    @graph.route(ns.instance_path, Operation.Update, ns)
     @request(request_schema)
     @response(response_schema)
     def update(**path_data):
@@ -189,10 +184,10 @@ def register_update_endpoint(graph, obj, path_prefix, func, request_schema, resp
         response_data = require_response_data(func(**merge_data(path_data, request_data)))
         return dump_response_data(response_schema, response_data)
 
-    update.__doc__ = "Update some or all of a {} by id".format(name_for(obj))
+    update.__doc__ = "Update some or all of a {} by id".format(ns.subject_name)
 
 
-def configure_crud(graph, obj, mappings, path_prefix=""):
+def configure_crud(graph, ns, mappings, path_prefix=""):
     """
     Register CRUD endpoints for a resource object.
 
@@ -209,6 +204,7 @@ def configure_crud(graph, obj, mappings, path_prefix=""):
         }
 
     """
+    ns = Namespace.make(ns, path=path_prefix)
     for operation, register in CRUD_MAPPINGS.items():
         if operation in mappings:
-            register(graph, obj, path_prefix, *mappings[operation])
+            register(graph, ns, *mappings[operation])
