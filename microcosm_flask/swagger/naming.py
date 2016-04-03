@@ -7,10 +7,8 @@ Intended to play nice with generated code (e.g. with Bravado)
 
 from inflection import camelize, pluralize
 
-from microcosm_flask.naming import name_for
 
-
-def operation_name(operation, obj):
+def operation_name(operation, ns):
     """
     Convert an operation, obj(s) pair into a swagger operation id.
 
@@ -21,11 +19,11 @@ def operation_name(operation, obj):
         foo.search_for.bar => client.foo.search_for_bars()
 
     """
-    if isinstance(obj, (list, tuple)):
-        verb, rest = operation.value.name, obj[1:]
+    verb = operation.value.name
+    if ns.object_:
+        return "{}_{}".format(verb, pluralize(ns.object_name))
     else:
-        verb, rest = operation.value.name, []
-    return "_".join([verb] + [pluralize(name_for(noun)) for noun in rest])
+        return verb
 
 
 def type_name(name):

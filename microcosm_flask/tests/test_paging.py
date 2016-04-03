@@ -10,6 +10,7 @@ from hamcrest import (
 
 from microcosm.api import create_object_graph
 from microcosm_flask.conventions.encoding import load_query_string_data
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import Page, PageSchema, PaginatedList
 
@@ -46,12 +47,13 @@ def test_page_prev():
 
 def test_paginated_list_to_dict():
     graph = create_object_graph(name="example", testing=True)
+    ns = Namespace(subject="foo")
 
-    @graph.route("/foo", Operation.Search, "foo")
+    @graph.route(ns.collection_path, Operation.Search, ns)
     def search_foo():
         pass
 
-    paginated_list = PaginatedList("foo", Page(2, 2), ["1", "2"], 10)
+    paginated_list = PaginatedList(ns, Page(2, 2), ["1", "2"], 10)
 
     with graph.flask.test_request_context():
         assert_that(paginated_list.to_dict(), is_(equal_to({
@@ -78,13 +80,14 @@ def test_paginated_list_to_dict():
 
 def test_paginated_list_relation_to_dict():
     graph = create_object_graph(name="example", testing=True)
+    ns = Namespace(subject="foo", object_="bar")
 
-    @graph.route("/foo/<foo_id>/bar", Operation.SearchFor, ("foo", "bar"))
+    @graph.route(ns.relation_path, Operation.SearchFor, ns)
     def search_foo():
         pass
 
     paginated_list = PaginatedList(
-        ("foo", "bar"),
+        ns,
         Page(2, 2),
         ["1", "2"],
         10,

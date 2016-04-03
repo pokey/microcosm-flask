@@ -9,6 +9,7 @@ See: https://tools.ietf.org/html/draft-kelly-json-hal-07
 """
 from werkzeug.routing import BuildError
 
+from microcosm_flask.namespaces import Namespace
 
 # NB: it would be nice to use marshmallow schemas in lieu of `to_dict()` functions here
 #
@@ -69,7 +70,7 @@ class Link(object):
         return dct
 
     @classmethod
-    def for_(cls, operation, obj, qs=None, type=None, allow_templates=False, **kwargs):
+    def for_(cls, operation, ns, qs=None, type=None, allow_templates=False, **kwargs):
         """
         Create a link to an operation on a resource object.
 
@@ -79,15 +80,18 @@ class Link(object):
         See also [RFC 6570]( https://tools.ietf.org/html/rfc6570).
 
         :param operation: the operation
-        :param obj: the resource object, name, or class
+        :param ns: the namespace
         :param qs: an optional query string (e.g. for paging)
         :param type: an optional link type
         :param allow_templates: whether generated links are allowed to contain templates
         :param kwargs: optional endpoint expansion arguments (e.g. for URI parameters)
         :raises BuildError: if link templating is needed and disallowed
         """
+        # ensure that we actually have a Namespace; many legacy code paths use strings or tuples
+        ns = Namespace.make(ns)
+
         try:
-            href, templated = operation.href_for(obj, qs=qs, **kwargs), False
+            href, templated = ns.href_for(operation, qs=qs, **kwargs), False
         except BuildError as error:
             if not allow_templates:
                 raise
@@ -96,7 +100,7 @@ class Link(object):
                 for argument in error.suggested.arguments
             }
             kwargs.update(uri_templates)
-            href, templated = operation.href_for(obj, qs=qs, **kwargs), True
+            href, templated = ns.href_for(operation, qs=qs, **kwargs), True
 
         return cls(
             href=href,
