@@ -93,17 +93,12 @@ def register_search_relation_endpoint(graph, ns, func, request_schema, response_
     search.__doc__ = "Search for {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
 
 
-def configure_relation(graph, from_obj, to_obj, mappings, path_prefix=""):
+def configure_relation(graph, ns, mappings, path_prefix=""):
     """
     Register relation endpoint(s) between two resources.
 
     """
-    ns = Namespace(
-        path=path_prefix,
-        subject=from_obj,
-        object_=to_obj,
-    )
-
+    ns = Namespace.make(ns, path=path_prefix)
     for operation, register in RELATION_MAPPINGS.items():
         if operation in mappings:
             register(graph, ns, *mappings[operation])
