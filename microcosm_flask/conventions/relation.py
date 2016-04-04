@@ -1,8 +1,8 @@
 """
 Conventions for canonical relation endpoints (mapping one resource to another).
 
-For relations, operation definitions require *two* objects instead of one; for
-simplicity these are passed as a pair/tuple.
+For relations, endpoint definitions require that the `Namespace` contain *both*
+a subject and an object.
 
 """
 from flask import jsonify
@@ -15,7 +15,7 @@ from microcosm_flask.conventions.encoding import (
     merge_data,
 )
 from microcosm_flask.conventions.registry import qs, request, response
-from microcosm_flask.naming import name_for, relation_path_for
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_schema
 
@@ -36,12 +36,12 @@ def _relation(operation):
 
 
 @_relation(Operation.CreateFor)
-def register_createfor_relation_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+def register_createfor_relation_endpoint(graph, ns, func, request_schema, response_schema):
     """
     Register a create-for relation endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
+    :param ns: the namespace
     :param path_prefix: the routing path prefix
     :param func: a store create function, which must:
       - accept kwargs for the new instance creation parameters
@@ -49,7 +49,7 @@ def register_createfor_relation_endpoint(graph, obj, path_prefix, func, request_
     :param request_schema: a marshmallow schema to decode/validate instance creation parameters
     :param response_schema: a marshmallow schema to encode the created instance
     """
-    @graph.route(path_prefix + relation_path_for(*obj), Operation.CreateFor, obj)
+    @graph.route(ns.relation_path, Operation.CreateFor, ns)
     @request(request_schema)
     @response(response_schema)
     def create(**path_data):
@@ -57,17 +57,16 @@ def register_createfor_relation_endpoint(graph, obj, path_prefix, func, request_
         response_data = func(**merge_data(path_data, request_data))
         return dump_response_data(response_schema, response_data, Operation.CreateFor.value.default_code)
 
-    create.__doc__ = "Create a new {} relative to a {}".format(pluralize(name_for(obj[1])), name_for(obj[0]))
+    create.__doc__ = "Create a new {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
 
 
 @_relation(Operation.SearchFor)
-def register_search_relation_endpoint(graph, obj, path_prefix, func, request_schema, response_schema):
+def register_search_relation_endpoint(graph, ns, func, request_schema, response_schema):
     """
     Register a relation endpoint.
 
     :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
+    :param ns: the namespace
     :param func: a search function, which must:
       - accept kwargs for the query string (minimally for pagination)
       - return a tuple of (items, count, context) where count is the total number of items
@@ -77,9 +76,9 @@ def register_search_relation_endpoint(graph, obj, path_prefix, func, request_sch
     :param response_schema: a marshmallow schema to encode (a single) response item
     """
 
-    paginated_list_schema = make_paginated_list_schema(obj[1], response_schema)()
+    paginated_list_schema = make_paginated_list_schema(ns.object_ns, response_schema)()
 
-    @graph.route(path_prefix + relation_path_for(*obj), Operation.SearchFor, obj)
+    @graph.route(ns.relation_path, Operation.SearchFor, ns)
     @qs(request_schema)
     @response(paginated_list_schema)
     def search(**path_data):
@@ -88,17 +87,18 @@ def register_search_relation_endpoint(graph, obj, path_prefix, func, request_sch
         items, count, context = func(**merge_data(path_data, request_data))
         # TODO: use the schema for encoding
         return jsonify(
-            PaginatedList(obj, page, items, count, response_schema, Operation.SearchFor, **context).to_dict()
+            PaginatedList(ns, page, items, count, response_schema, Operation.SearchFor, **context).to_dict()
         )
 
-    search.__doc__ = "Search for {} relative to a {}".format(pluralize(name_for(obj[1])), name_for(obj[0]))
+    search.__doc__ = "Search for {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
 
 
-def configure_relation(graph, from_obj, to_obj, mappings, path_prefix=""):
+def configure_relation(graph, ns, mappings, path_prefix=""):
     """
     Register relation endpoint(s) between two resources.
 
     """
+    ns = Namespace.make(ns, path=path_prefix)
     for operation, register in RELATION_MAPPINGS.items():
         if operation in mappings:
-            register(graph, (from_obj, to_obj), path_prefix, *mappings[operation])
+            register(graph, ns, *mappings[operation])

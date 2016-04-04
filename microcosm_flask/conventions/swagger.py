@@ -7,28 +7,28 @@ Exposes swagger definitions for matching operations.
 from flask import jsonify, g
 
 from microcosm.api import defaults
-from microcosm_flask.conventions.registry import iter_operations
-from microcosm_flask.naming import singleton_path_for
+from microcosm_flask.conventions.registry import iter_endpoints
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 from microcosm_flask.swagger.definitions import build_swagger
 
 
-def register_swagger_endpoint(graph, name, version, path_prefix, match_func):
+def register_swagger_endpoint(graph, ns, match_func):
     """
     Register a swagger endpoint for a set of operations.
 
     """
-    @graph.route(path_prefix + singleton_path_for(name), Operation.Discover, name)
+    @graph.route(ns.singleton_path, Operation.Discover, ns)
     def discover():
-        operations = list(iter_operations(graph, match_func))
+        operations = list(iter_endpoints(graph, match_func))
 
-        swagger = build_swagger(graph, version, path_prefix, operations)
+        swagger = build_swagger(graph, ns.version, ns.path, operations)
 
         g.hide_body = True
 
         return jsonify(swagger)
 
-    return name
+    return ns.subject
 
 
 @defaults(
@@ -55,15 +55,21 @@ def configure_swagger(graph):
     base_path = graph.config.route.path_prefix
     path_prefix = graph.config.swagger_convention.path_prefix + "/" + version
 
-    matches = {
-        Operation.from_name(operation_name.lower())
+    ns = Namespace(
+        path=path_prefix,
+        subject=name,
+        version=version,
+    )
+
+    matching_operations = {
+        Operation.from_name(operation_name)
         for operation_name in graph.config.swagger_convention.operations
     }
 
-    def match_func(operation, obj, rule):
+    def match_func(operation, ns, rule):
         return (
             rule.rule.startswith(base_path + path_prefix) and
-            operation in matches
+            operation in matching_operations
         )
 
-    return register_swagger_endpoint(graph, name, version, path_prefix, match_func)
+    return register_swagger_endpoint(graph, ns, match_func)

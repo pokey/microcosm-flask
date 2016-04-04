@@ -20,14 +20,14 @@ from microcosm.api import defaults
 )
 def configure_route_decorator(graph):
     """
-    Configure a flask route decorator that operations on `Operation` objects.
+    Configure a flask route decorator that operates on `Operation` and `Namespace` objects.
 
     By default, enables CORS support, assuming that service APIs are not exposed
     directly to browsers except when using API browsing tools.
 
     Usage:
 
-        @graph.route("/foo", Operation.Search, "foo")
+        @graph.route(ns.collection_path, Operation.Search, ns)
         def search_foo():
             pass
 
@@ -35,7 +35,12 @@ def configure_route_decorator(graph):
     # routes depends on converters
     graph.use(*graph.config.route.converters)
 
-    def route(path, operation, obj):
+    def route(path, operation, ns):
+        """
+        :param path: a URI path, possibly derived from a property of the `ns`
+        :param operation: an `Operation` enum value
+        :param ns: a `Namespace` instance
+        """
 
         def decorator(func):
             if graph.config.route.enable_cors:
@@ -51,9 +56,7 @@ def configure_route_decorator(graph):
 
             graph.app.route(
                 graph.config.route.path_prefix + path,
-                # for blueprints, the endpoint is operation.value.name
-                # because Flask automatically prefixes blueprint endpoints with "obj."
-                endpoint=operation.name_for(obj),
+                endpoint=ns.endpoint_for(operation),
                 methods=[operation.value.method],
             )(func)
             return func

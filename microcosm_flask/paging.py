@@ -5,7 +5,6 @@ Pagination support.
 from marshmallow import fields, Schema
 
 from microcosm_flask.linking import Link, Links
-from microcosm_flask.naming import name_for
 from microcosm_flask.operations import Operation
 
 
@@ -14,19 +13,22 @@ class PageSchema(Schema):
     limit = fields.Integer(missing=20, limit=20)
 
 
-def make_paginated_list_schema(obj, obj_schema):
+def make_paginated_list_schema(ns, item_schema):
     """
     Generate a paginated list schema.
+
+    :param ns: a `Namespace` for the list's item type
+    :param item_schema: a `Schema` for the list's item type
 
     """
 
     class PaginatedListSchema(Schema):
-        __alias__ = "{}_list".format(name_for(obj[0] if isinstance(obj, (list, tuple)) else obj))
+        __alias__ = "{}_list".format(ns.subject_name)
 
         offset = fields.Integer(required=True)
         limit = fields.Integer(required=True)
         count = fields.Integer(required=True)
-        items = fields.List(fields.Nested(obj_schema), required=True)
+        items = fields.List(fields.Nested(item_schema), required=True)
         links = fields.Raw(dump_to="_links")
 
     return PaginatedListSchema
@@ -79,14 +81,14 @@ class Page(object):
 class PaginatedList(object):
 
     def __init__(self,
-                 obj,
+                 ns,
                  page,
                  items,
                  count,
                  schema=None,
                  operation=Operation.Search,
                  **extra):
-        self.obj = obj
+        self.ns = ns
         self.page = page
         self.items = items
         self.count = count
@@ -108,9 +110,9 @@ class PaginatedList(object):
     @property
     def links(self):
         links = Links()
-        links["self"] = Link.for_(self.operation, self.obj, qs=self.page.to_tuples(), **self.extra)
+        links["self"] = Link.for_(self.operation, self.ns, qs=self.page.to_tuples(), **self.extra)
         if self.page.offset + self.page.limit < self.count:
-            links["next"] = Link.for_(self.operation, self.obj, qs=self.page.next().to_tuples(), **self.extra)
+            links["next"] = Link.for_(self.operation, self.ns, qs=self.page.next().to_tuples(), **self.extra)
         if self.page.offset > 0:
-            links["prev"] = Link.for_(self.operation, self.obj, qs=self.page.prev().to_tuples(), **self.extra)
+            links["prev"] = Link.for_(self.operation, self.ns, qs=self.page.prev().to_tuples(), **self.extra)
         return links

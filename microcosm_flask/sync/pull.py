@@ -77,7 +77,12 @@ def pull_json(args, base_url):
                 # pushing back state that cannot be persisted
                 exclude_first = False
                 continue
-            yield href, sort_links(resource)
+            sort_links(resource)
+            for relation, links in iter_links(resource):
+                if href not in seen and any(pattern.match(relation) for pattern in args.relation_patterns):
+                    seen.add(href)
+                    stack.append(href)
+            yield href, resource
 
         for relation, link in iter_links(data):
             href = link["href"]

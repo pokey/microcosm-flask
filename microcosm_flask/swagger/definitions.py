@@ -1,6 +1,5 @@
 """
-Generates a Swagger definition for registered operations.
-
+Generates a Swagger definition for registered endpoints.
 
 Note that:
  -  Swagger operations and type names use different conventions from the internal definitions
@@ -65,10 +64,10 @@ def add_paths(paths, path_prefix, operations):
     Add paths to swagger.
 
     """
-    for operation, obj, rule, func in operations:
-        path = build_path(operation, obj)[len(path_prefix):]
+    for operation, ns, rule, func in operations:
+        path = build_path(operation, ns)[len(path_prefix):]
         method = operation.value.method.lower()
-        paths.setdefault(path, swagger.PathItem())[method] = build_operation(operation, obj, rule, func)
+        paths.setdefault(path, swagger.PathItem())[method] = build_operation(operation, ns, rule, func)
 
 
 def add_definitions(definitions, operations):
@@ -92,19 +91,19 @@ def add_definitions(definitions, operations):
             definitions.setdefault(type_name(name_for(response_schema)), swagger.Schema(build_schema(response_schema)))
 
 
-def build_path(operation, obj):
+def build_path(operation, ns):
     """
     Build a path URI for an operation.
 
     """
     try:
-        return operation.url_for(obj)
+        return ns.url_for(operation)
     except BuildError as error:
         uri_templates = {
             argument: "{{{}}}".format(argument)
             for argument in error.suggested.arguments
         }
-        return operation.url_for(obj, **uri_templates)
+        return ns.url_for(operation, **uri_templates)
 
 
 def body_param(schema):
@@ -143,17 +142,17 @@ def path_param(name, param_type="string"):
     })
 
 
-def build_operation(operation, obj, rule, func):
+def build_operation(operation, ns, rule, func):
     """
     Build an operation definition.
 
     """
     swagger_operation = swagger.Operation(
-        operationId=operation_name(operation, obj),
+        operationId=operation_name(operation, ns),
         parameters=swagger.ParametersList([
         ]),
         responses=swagger.Responses(),
-        tags=[name_for(obj[0] if isinstance(obj, (list, tuple)) else obj)],
+        tags=[ns.subject_name],
     )
 
     # path parameters
@@ -178,11 +177,11 @@ def build_operation(operation, obj, rule, func):
             body_param(request_schema)
         )
 
-    add_responses(swagger_operation, operation, obj, func)
+    add_responses(swagger_operation, operation, ns, func)
     return swagger_operation
 
 
-def add_responses(swagger_operation, operation, obj, func):
+def add_responses(swagger_operation, operation, ns, func):
     """
     Add responses to an operation.
 
@@ -196,7 +195,7 @@ def add_responses(swagger_operation, operation, obj, func):
     if hasattr(func, "__doc__"):
         description = func.__doc__.strip().splitlines()[0]
     else:
-        description = "{} {}".format(operation.value.name, name_for(obj))
+        description = "{} {}".format(operation.value.name, ns.subject_name)
 
     # resources response
     swagger_operation.responses[str(operation.value.default_code)] = build_response(

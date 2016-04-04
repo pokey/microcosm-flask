@@ -2,7 +2,7 @@
 Support for registering function metadata.
 
 """
-from microcosm_flask.operations import Operation
+from microcosm_flask.namespaces import Namespace
 
 
 REQUEST = "__request__"
@@ -10,22 +10,29 @@ RESPONSE = "__response__"
 QS = "__qs__"
 
 
-def iter_operations(graph, match_func):
+def iter_endpoints(graph, match_func):
     """
-    Iterate through operations in matches.
+    Iterate through matching endpoints.
+
+    The `match_func` is expected to have a signature of:
+
+        def matches(operation, ns, rule):
+            return True
+
+    :returns: a generator over (`Operation`, `Namespace`, rule, func) tuples.
 
     """
     for rule in graph.flask.url_map.iter_rules():
         try:
-            operation, obj = Operation.parse(rule.endpoint)
+            operation, ns = Namespace.parse_endpoint(rule.endpoint)
         except (IndexError, ValueError):
             # operation follows a different convention (e.g. "static")
             continue
         else:
             # match_func gets access to rule to support path version filtering
-            if match_func(operation, obj, rule):
+            if match_func(operation, ns, rule):
                 func = graph.flask.view_functions[rule.endpoint]
-                yield operation, obj, rule, func
+                yield operation, ns, rule, func
 
 
 def request(schema):
