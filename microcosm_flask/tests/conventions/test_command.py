@@ -14,6 +14,7 @@ from microcosm.api import create_object_graph
 
 from microcosm_flask.conventions.encoding import dump_response_data, load_request_data
 from microcosm_flask.conventions.registry import request, response
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 
 
@@ -26,13 +27,12 @@ class CommandResultSchema(Schema):
     value = fields.String(required=True)
 
 
-def make_command(graph, request_schema, response_schema):
+def make_command(graph, ns, request_schema, response_schema):
     """
     Create an example command route.
 
     """
-
-    @graph.route("/v1/foo/do", Operation.Command, "foo")
+    @graph.route("/v1/foo/do", Operation.Command, ns)
     @request(request_schema)
     @response(response_schema)
     def foo_command():
@@ -62,8 +62,9 @@ class TestCommand(object):
 
         self.graph = create_object_graph(name="example", testing=True, loader=loader)
         self.graph.use("swagger_convention")
+        self.ns = Namespace(subject="foo")
 
-        make_command(self.graph, CommandArgumentSchema(), CommandResultSchema())
+        make_command(self.graph, self.ns, CommandArgumentSchema(), CommandResultSchema())
 
         self.client = self.graph.flask.test_client()
 
@@ -73,7 +74,7 @@ class TestCommand(object):
 
         """
         with self.graph.flask.test_request_context():
-            assert_that(Operation.Command.url_for("foo"), is_(equal_to("/api/v1/foo/do")))
+            assert_that(self.ns.url_for(Operation.Command), is_(equal_to("/api/v1/foo/do")))
 
     def test_command(self):
         """

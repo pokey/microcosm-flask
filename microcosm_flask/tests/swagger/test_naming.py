@@ -8,17 +8,20 @@ from hamcrest import (
     is_,
 )
 
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 from microcosm_flask.swagger.naming import operation_name, type_name
 
 
 def test_operation_name_retrieve():
-    name = operation_name(Operation.Retrieve, "foo")
+    ns = Namespace(subject="foo")
+    name = operation_name(Operation.Retrieve, ns)
     assert_that(name, is_(equal_to("retrieve")))
 
 
 def test_operation_name_search_for():
-    name = operation_name(Operation.SearchFor, ("foo", "bar"))
+    ns = Namespace(subject="foo", object_="bar")
+    name = operation_name(Operation.SearchFor, ns)
     assert_that(name, is_(equal_to("search_for_bars")))
 
 

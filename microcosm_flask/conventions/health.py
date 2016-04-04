@@ -9,7 +9,7 @@ from flask import jsonify
 
 from microcosm.api import defaults
 from microcosm_flask.errors import extract_error_message
-from microcosm_flask.naming import singleton_path_for
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 
 
@@ -86,10 +86,14 @@ def configure_health(graph):
     :returns: a handle to the `Health` object, allowing other components to
               manipulate health state.
     """
-
     health = Health(graph)
 
-    @graph.route(graph.config.health_convention.path_prefix + singleton_path_for(Health), Operation.Retrieve, Health)
+    ns = Namespace(
+        path=graph.config.health_convention.path_prefix,
+        subject=health,
+    )
+
+    @graph.route(ns.singleton_path, Operation.Retrieve, ns)
     def current_health():
         dct = health.to_dict()
         response = jsonify(dct)

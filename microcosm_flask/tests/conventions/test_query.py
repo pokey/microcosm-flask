@@ -14,6 +14,7 @@ from microcosm.api import create_object_graph
 
 from microcosm_flask.conventions.encoding import dump_response_data, load_query_string_data
 from microcosm_flask.conventions.registry import qs, response
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 
 
@@ -26,13 +27,12 @@ class QueryResultSchema(Schema):
     value = fields.String(required=True)
 
 
-def make_query(graph, request_schema, response_schema):
+def make_query(graph, ns, request_schema, response_schema):
     """
     Create an example query route.
 
     """
-
-    @graph.route("/v1/foo/get", Operation.Query, "foo")
+    @graph.route("/v1/foo/get", Operation.Query, ns)
     @qs(request_schema)
     @response(response_schema)
     def foo_query():
@@ -61,8 +61,9 @@ class TestQuery(object):
             )
         self.graph = create_object_graph(name="example", testing=True, loader=loader)
         self.graph.use("swagger_convention")
+        self.ns = Namespace(subject="foo")
 
-        make_query(self.graph, QueryStringSchema(), QueryResultSchema())
+        make_query(self.graph, self.ns, QueryStringSchema(), QueryResultSchema())
 
         self.client = self.graph.flask.test_client()
 
@@ -72,7 +73,7 @@ class TestQuery(object):
 
         """
         with self.graph.flask.test_request_context():
-            assert_that(Operation.Query.url_for("foo"), is_(equal_to("/api/v1/foo/get")))
+            assert_that(self.ns.url_for(Operation.Query), is_(equal_to("/api/v1/foo/get")))
 
     def test_query(self):
         """
