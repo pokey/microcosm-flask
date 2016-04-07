@@ -26,7 +26,6 @@ setup(
         "microcosm-logging>=0.2.0",
         "openapi>=0.2.0",
         "python-dateutil>=2.5.2",
-        "pytz>=2016.3",
         "PyYAML>=3.11",
     ],
     setup_requires=[
