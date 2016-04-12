@@ -5,6 +5,7 @@ A discovery endpoint provides links to other endpoints.
 from flask import jsonify
 
 from microcosm.api import defaults
+from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.encoding import load_query_string_data
 from microcosm_flask.conventions.registry import iter_endpoints
 from microcosm_flask.linking import Link, Links
@@ -27,31 +28,49 @@ def iter_links(operations, page):
         )
 
 
-def register_discovery_endpoint(graph, ns, match_func):
-    """
-    Register a discovery endpoint for a set of operations.
+class DiscoveryConvention(Convention):
 
-    """
-    page_schema = PageSchema()
+    @property
+    def matching_operations(self):
+        return {
+            Operation.from_name(operation_name)
+            for operation_name in self.graph.config.discovery_convention.operations
+        }
 
-    @graph.route(ns.singleton_path, Operation.Discover, ns)
-    def discover():
-        # accept pagination limit from request
-        page = Page.from_query_string(load_query_string_data(page_schema))
-        page.offset = 0
+    @property
+    def operations(self):
+        """
+        Compute current matching endpoints.
 
-        operations = list(iter_endpoints(graph, match_func))
+        Evaluated as a property to defer evaluation.
 
-        return jsonify(
-            _links=Links({
-                "self": Link.for_(Operation.Discover, ns, qs=page.to_tuples()),
-                "search": [
-                    link for link in iter_links(operations, page)
-                ],
-            }).to_dict()
-        )
+        """
+        def match_func(operation, ns, rule):
+            return operation in self.matching_operations
 
-    return ns.subject
+        return list(iter_endpoints(self.graph, match_func))
+
+    def configure_discover(self, ns, definition):
+        """
+        Register a discovery endpoint for a set of operations.
+
+        """
+        page_schema = PageSchema()
+
+        @self.graph.route(ns.singleton_path, Operation.Discover, ns)
+        def discover():
+            # accept pagination limit from request
+            page = Page.from_query_string(load_query_string_data(page_schema))
+            page.offset = 0
+
+            return jsonify(
+                _links=Links({
+                    "self": Link.for_(Operation.Discover, ns, qs=page.to_tuples()),
+                    "search": [
+                        link for link in iter_links(self.operations, page)
+                    ],
+                }).to_dict()
+            )
 
 
 @defaults(
@@ -70,13 +89,6 @@ def configure_discovery(graph):
         path=graph.config.discovery_convention.path_prefix,
         subject=graph.config.discovery_convention.name,
     )
-
-    matching_operations = {
-        Operation.from_name(operation_name)
-        for operation_name in graph.config.discovery_convention.operations
-    }
-
-    def match_func(operation, ns, rule):
-        return operation in matching_operations
-
-    return register_discovery_endpoint(graph, ns, match_func)
+    convention = DiscoveryConvention(graph)
+    convention.configure(ns, discover=tuple())
+    return ns.subject
