@@ -42,6 +42,10 @@ class EnumField(Field):
         try:
             return self.enum(value)
         except ValueError:
+            try:
+                return self.enum(int(value))
+            except:
+                pass
             self.fail('by_value', value=value)
 
     def _deserialize_by_name(self, value, attr, data):
