@@ -5,6 +5,7 @@ Conventions for canonical CRUD endpoints.
 from flask import jsonify
 from inflection import pluralize
 
+from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.encoding import (
     dump_response_data,
     load_query_string_data,
@@ -18,173 +19,147 @@ from microcosm_flask.operations import Operation
 from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_schema
 
 
-# local registry of CRUD mappings
-CRUD_MAPPINGS = {}
+class CRUDConvention(Convention):
 
+    def configure_search(self, ns, definition):
+        """
+        Register a search endpoint.
 
-def _crud(operation):
-    """
-    Register a "register_<foo>_endpoint" function with an operation.
+        The definition's func should be a search function, which must:
+        - accept kwargs for the query string (minimally for pagination)
+        - return a tuple of (items, count) where count is the total number of items
+          available (in the case of pagination)
 
-    """
-    def decorator(func):
-        CRUD_MAPPINGS[operation] = func
-        return func
-    return decorator
+        The definition's request_schema will be used to process query string arguments.
 
+        :param ns: the namespace
+        :param definition: the endpoint definition
 
-@_crud(Operation.Search)
-def register_search_endpoint(graph, ns, func, request_schema, response_schema):
-    """
-    Register a search endpoint.
+        """
+        paginated_list_schema = make_paginated_list_schema(ns, definition.response_schema)()
 
-    :param graph: the object graph
-    :param ns: the namespace
-    :param func: a search function, which must:
-      - accept kwargs for the query string (minimally for pagination)
-      - return a tuple of (items, count) where count is the total number of items
-        available (in the case of pagination)
-    :param request_schema: a marshmallow schema to decode/validate query string arguments
-    :param response_schema: a marshmallow schema to encode (a single) response item
-    """
+        @self.graph.route(ns.collection_path, Operation.Search, ns)
+        @qs(definition.request_schema)
+        @response(paginated_list_schema)
+        def search(**path_data):
+            request_data = load_query_string_data(definition.request_schema)
+            page = Page.from_query_string(request_data)
+            items, count = definition.func(**merge_data(path_data, request_data))
+            # TODO: use the schema for encoding
+            return jsonify(
+                PaginatedList(ns, page, items, count, definition.response_schema).to_dict()
+            )
 
-    paginated_list_schema = make_paginated_list_schema(ns, response_schema)()
+        search.__doc__ = "Search the collection of all {}".format(pluralize(ns.subject_name))
 
-    @graph.route(ns.collection_path, Operation.Search, ns)
-    @qs(request_schema)
-    @response(paginated_list_schema)
-    def search(**path_data):
-        request_data = load_query_string_data(request_schema)
-        page = Page.from_query_string(request_data)
-        items, count = func(**merge_data(path_data, request_data))
-        # TODO: use the schema for encoding
-        return jsonify(
-            PaginatedList(ns, page, items, count, response_schema).to_dict()
-        )
+    def configure_create(self, ns, definition):
+        """
+        Register a create endpoint.
 
-    search.__doc__ = "Search the collection of all {}".format(pluralize(ns.subject_name))
+        The definition's func should be a create function, which must:
+        - accept kwargs for the request and path data
+        - return a new item
 
+        :param ns: the namespace
+        :param definition: the endpoint definition
 
-@_crud(Operation.Create)
-def register_create_endpoint(graph, ns, func, request_schema, response_schema):
-    """
-    Register a create endpoint.
+        """
+        @self.graph.route(ns.collection_path, Operation.Create, ns)
+        @request(definition.request_schema)
+        @response(definition.response_schema)
+        def create(**path_data):
+            request_data = load_request_data(definition.request_schema)
+            response_data = definition.func(**merge_data(path_data, request_data))
+            return dump_response_data(definition.response_schema, response_data, Operation.Create.value.default_code)
 
-    :param graph: the object graph
-    :param ns: the namespace
-    :param func: a create function, which must:
-      - accept kwargs for the request and path data
-      - return a new item
-    :param request_schema: a marshmallow schema to decode/validate request data
-    :param response_schema: a marshmallow schema to encode response data
+        create.__doc__ = "Create a new {}".format(ns.subject_name)
 
-    """
-    @graph.route(ns.collection_path, Operation.Create, ns)
-    @request(request_schema)
-    @response(response_schema)
-    def create(**path_data):
-        request_data = load_request_data(request_schema)
-        response_data = func(**merge_data(path_data, request_data))
-        return dump_response_data(response_schema, response_data, Operation.Create.value.default_code)
+    def configure_retrieve(self, ns, definition):
+        """
+        Register a retrieve endpoint.
 
-    create.__doc__ = "Create a new {}".format(ns.subject_name)
+        The definition's func should be a retrieve function, which must:
+        - accept kwargs for path data
+        - return an item or falsey
 
+        :param ns: the namespace
+        :param definition: the endpoint definition
 
-@_crud(Operation.Retrieve)
-def register_retrieve_endpoint(graph, ns, func, response_schema):
-    """
-    Register a retrieve endpoint.
+        """
+        @self.graph.route(ns.instance_path, Operation.Retrieve, ns)
+        @response(definition.response_schema)
+        def retrieve(**path_data):
+            response_data = require_response_data(definition.func(**path_data))
+            return dump_response_data(definition.response_schema, response_data)
 
-    :param graph: the object graph
-    :param ns: the namespace
-    :param func: a retrieve function, which must:
-      - accept kwargs for path data
-      - return an item or falsey
-    :param response_schema: a marshmallow schema to encode response data
+        retrieve.__doc__ = "Retrieve a {} by id".format(ns.subject_name)
 
-    """
-    @graph.route(ns.instance_path, Operation.Retrieve, ns)
-    @response(response_schema)
-    def retrieve(**path_data):
-        response_data = require_response_data(func(**path_data))
-        return dump_response_data(response_schema, response_data)
+    def configure_delete(self, ns, definition):
+        """
+        Register a delete endpoint.
 
-    retrieve.__doc__ = "Retrieve a {} by id".format(ns.subject_name)
+        The definition's func should be a delete function, which must:
+        - accept kwargs for path data
+        - return truthy/falsey
 
+        :param ns: the namespace
+        :param definition: the endpoint definition
 
-@_crud(Operation.Delete)
-def register_delete_endpoint(graph, ns, func):
-    """
-    Register a delete endpoint.
+        """
+        @self.graph.route(ns.instance_path, Operation.Delete, ns)
+        def delete(**path_data):
+            require_response_data(definition.func(**path_data))
+            return "", Operation.Delete.value.default_code
 
-    :param graph: the object graph
-    :param ns: the namespace
-    :param func: a delete function, which must:
-      - accept kwargs for path data
-      - return truthy/falsey
+        delete.__doc__ = "Delete a {} by id".format(ns.subject_name)
 
-    """
-    @graph.route(ns.instance_path, Operation.Delete, ns)
-    def delete(**path_data):
-        require_response_data(func(**path_data))
-        return "", Operation.Delete.value.default_code
+    def configure_replace(self, ns, definition):
+        """
+        Register a replace endpoint.
 
-    delete.__doc__ = "Delete a {} by id".format(ns.subject_name)
+        The definition's func should be a replace function, which must:
+        - accept kwargs for the request and path data
+        - return the replaced item
 
+        :param ns: the namespace
+        :param definition: the endpoint definition
 
-@_crud(Operation.Replace)
-def register_replace_endpoint(graph, ns, func, request_schema, response_schema):
-    """
-    Register a replace endpoint.
+        """
+        @self.graph.route(ns.instance_path, Operation.Replace, ns)
+        @request(definition.request_schema)
+        @response(definition.response_schema)
+        def replace(**path_data):
+            request_data = load_request_data(definition.request_schema)
+            # Replace/put should create a resource if not already present, but we do not
+            # enforce these semantics at the HTTP layer. If `func` returns falsey, we
+            # will raise a 404.
+            response_data = require_response_data(definition.func(**merge_data(path_data, request_data)))
+            return dump_response_data(definition.response_schema, response_data)
 
-    :param graph: the object graph
-    :param ns: the namespace
-    :param func: a replace function, which must:
-      - accept kwargs for the request and path data
-      - return the replaced item
-    :param request_schema: a marshmallow schema to decode/validate request data
-    :param response_schema: a marshmallow schema to encode response data
+        replace.__doc__ = "Create or update a {} by id".format(ns.subject_name)
 
-    """
-    @graph.route(ns.instance_path, Operation.Replace, ns)
-    @request(request_schema)
-    @response(response_schema)
-    def replace(**path_data):
-        request_data = load_request_data(request_schema)
-        # Replace/put should create a resource if not already present, but we do not
-        # enforce these semantics at the HTTP layer. If `func` returns falsey, we
-        # will raise a 404.
-        response_data = require_response_data(func(**merge_data(path_data, request_data)))
-        return dump_response_data(response_schema, response_data)
+    def configure_update(self, ns, definition):
+        """
+        Register an update endpoint.
 
-    replace.__doc__ = "Create or update a {} by id".format(ns.subject_name)
+        The definition's func should be an update function, which must:
+        - accept kwargs for the request and path data
+        - return an updated item
 
+        :param ns: the namespace
+        :param definition: the endpoint definition
 
-@_crud(Operation.Update)
-def register_update_endpoint(graph, ns, func, request_schema, response_schema):
-    """
-    Register an update endpoint.
+        """
+        @self.graph.route(ns.instance_path, Operation.Update, ns)
+        @request(definition.request_schema)
+        @response(definition.response_schema)
+        def update(**path_data):
+            # NB: using partial here means that marshmallow will not validate required fields
+            request_data = load_request_data(definition.request_schema, partial=True)
+            response_data = require_response_data(definition.func(**merge_data(path_data, request_data)))
+            return dump_response_data(definition.response_schema, response_data)
 
-    :param graph: the object graph
-    :param obj: the target resource or resource name
-    :param path_prefix: the routing path prefix
-    :param func: an update function, which must:
-      - accept kwargs for the request and path data
-      - return an updated item
-    :param request_schema: a marshmallow schema to decode/validate request data
-    :param response_schema: a marshmallow schema to encode response data
-
-    """
-    @graph.route(ns.instance_path, Operation.Update, ns)
-    @request(request_schema)
-    @response(response_schema)
-    def update(**path_data):
-        # NB: using partial here means that marshmallow will not validate required fields
-        request_data = load_request_data(request_schema, partial=True)
-        response_data = require_response_data(func(**merge_data(path_data, request_data)))
-        return dump_response_data(response_schema, response_data)
-
-    update.__doc__ = "Update some or all of a {} by id".format(ns.subject_name)
+        update.__doc__ = "Update some or all of a {} by id".format(ns.subject_name)
 
 
 def configure_crud(graph, ns, mappings, path_prefix=""):
@@ -205,6 +180,5 @@ def configure_crud(graph, ns, mappings, path_prefix=""):
 
     """
     ns = Namespace.make(ns, path=path_prefix)
-    for operation, register in CRUD_MAPPINGS.items():
-        if operation in mappings:
-            register(graph, ns, *mappings[operation])
+    convention = CRUDConvention(graph)
+    convention.configure(ns, mappings)
