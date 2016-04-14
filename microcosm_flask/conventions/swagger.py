@@ -11,14 +11,11 @@ from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.registry import iter_endpoints
 from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
+from microcosm_flask.routing import make_path
 from microcosm_flask.swagger.definitions import build_swagger
 
 
 class SwaggerConvention(Convention):
-
-    def __init__(self, graph, path):
-        super(SwaggerConvention, self).__init__(graph)
-        self.path = path
 
     @property
     def matching_operations(self):
@@ -36,8 +33,9 @@ class SwaggerConvention(Convention):
 
         """
         def match_func(operation, ns, rule):
+            # only expose endpoints that have the correct path prefix and operation
             return (
-                rule.rule.startswith(self.path) and
+                rule.rule.startswith(make_path(self.graph, ns.path)) and
                 operation in self.matching_operations
             )
 
@@ -50,7 +48,7 @@ class SwaggerConvention(Convention):
         """
         @self.graph.route(ns.singleton_path, Operation.Discover, ns)
         def discover():
-            swagger = build_swagger(self.graph, ns.version, ns.path, self.operations)
+            swagger = build_swagger(self.graph, ns, self.operations)
             g.hide_body = True
             return jsonify(swagger)
 
@@ -73,18 +71,12 @@ def configure_swagger(graph):
     Build a singleton endpoint that provides swagger definitions for all operations.
 
     """
-    name = graph.config.swagger_convention.name
-    version = graph.config.swagger_convention.version
-
-    base_path = graph.config.route.path_prefix
-    path_prefix = graph.config.swagger_convention.path_prefix + "/" + version
-
     ns = Namespace(
-        path=path_prefix,
-        subject=name,
-        version=version,
+        path=graph.config.swagger_convention.path_prefix,
+        subject=graph.config.swagger_convention.name,
+        version=graph.config.swagger_convention.version,
     )
 
-    convention = SwaggerConvention(graph, base_path + path_prefix)
+    convention = SwaggerConvention(graph)
     convention.configure(ns, discover=tuple())
     return ns.subject

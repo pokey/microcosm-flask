@@ -42,7 +42,7 @@ def test_build_swagger():
 
     with graph.flask.test_request_context():
         operations = list(iter_endpoints(graph, match_function))
-        swagger_schema = build_swagger(graph, ns.version, ns.path, operations)
+        swagger_schema = build_swagger(graph, ns, operations)
 
     assert_that(swagger_schema, is_(equal_to({
         "info": {

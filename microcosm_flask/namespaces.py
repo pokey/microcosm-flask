@@ -31,11 +31,24 @@ class Namespace(object):
 
     """
 
-    def __init__(self, subject, object_=None, path="", version=None):
+    def __init__(self, subject, object_=None, path=None, version=None):
+        """
+        :param subject: the target resource (or resource name) of this namespace
+        :param object_: the subject resource (or resource name) of this namespace (e.g. for relations)
+        :param path: the path prefix for this namespace
+        :param version: the version of this namespace
+        """
         self.subject = subject
         self.object_ = object_
-        self.path = path
+        self._path = path or ""
         self.version = version
+
+    @property
+    def path(self):
+        if self.version:
+            return self._path + "/" + self.version
+        else:
+            return self._path
 
     @property
     def object_ns(self):

@@ -31,7 +31,7 @@ from microcosm_flask.swagger.naming import operation_name, type_name
 from microcosm_flask.swagger.schema import build_parameter, build_schema
 
 
-def build_swagger(graph, version, path_prefix, operations):
+def build_swagger(graph, ns, operations):
     """
     Build out the top-level swagger definition.
 
@@ -41,7 +41,7 @@ def build_swagger(graph, version, path_prefix, operations):
         swagger="2.0",
         info=swagger.Info(
             title=graph.metadata.name,
-            version=version,
+            version=ns.version,
         ),
         consumes=swagger.MediaTypeList([
             swagger.MimeType("application/json"),
@@ -49,11 +49,11 @@ def build_swagger(graph, version, path_prefix, operations):
         produces=swagger.MediaTypeList([
             swagger.MimeType("application/json"),
         ]),
-        basePath=base_path + "/" + version,
+        basePath=base_path + "/" + ns.version,
         paths=swagger.Paths(),
         definitions=swagger.Definitions(),
     )
-    add_paths(schema.paths, base_path + path_prefix, operations)
+    add_paths(schema.paths, base_path + ns.path, operations)
     add_definitions(schema.definitions, operations)
     schema.validate()
     return schema
