@@ -10,14 +10,13 @@ class EndpointDefinition(tuple):
     A definition for an endpoint.
 
     """
-    @classmethod
-    def make(cls, func=None, request_schema=None, response_schema=None):
+    def __new__(cls, func=None, request_schema=None, response_schema=None):
         """
         :param func: a function to process request data and return response data
         :param request_schema: a marshmallow schema to decode/validate request data
         :param response_schema: a marshmallow schema to encode response data
         """
-        return cls((func, request_schema, response_schema))
+        return tuple.__new__(EndpointDefinition, (func, request_schema, response_schema))
 
     @property
     def func(self):
@@ -79,20 +78,20 @@ class Convention(object):
 
         """
         if not definition:
-            return EndpointDefinition.make()
+            return EndpointDefinition()
         if isinstance(definition, EndpointDefinition):
             return definition
         elif len(definition) == 1:
-            return EndpointDefinition.make(
+            return EndpointDefinition(
                 func=definition[0],
             )
         elif len(definition) == 2:
-            return EndpointDefinition.make(
+            return EndpointDefinition(
                 func=definition[0],
                 response_schema=definition[1],
             )
         elif len(definition) == 3:
-            return EndpointDefinition.make(
+            return EndpointDefinition(
                 func=definition[0],
                 request_schema=definition[1],
                 response_schema=definition[2],
