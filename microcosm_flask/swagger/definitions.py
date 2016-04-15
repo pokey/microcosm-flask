@@ -192,7 +192,7 @@ def add_responses(swagger_operation, operation, ns, func):
         resource=type_name(name_for(ErrorSchema())),
     )
 
-    if hasattr(func, "__doc__"):
+    if getattr(func, "__doc__", None):
         description = func.__doc__.strip().splitlines()[0]
     else:
         description = "{} {}".format(operation.value.name, ns.subject_name)

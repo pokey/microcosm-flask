@@ -40,15 +40,15 @@ class Namespace(object):
         """
         self.subject = subject
         self.object_ = object_
-        self._path = path or ""
+        self.prefix = path or ""
         self.version = version
 
     @property
     def path(self):
         if self.version:
-            return self._path + "/" + self.version
+            return self.prefix + "/" + self.version
         else:
-            return self._path
+            return self.prefix
 
     @property
     def object_ns(self):
