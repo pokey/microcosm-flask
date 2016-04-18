@@ -24,8 +24,7 @@ class SwaggerConvention(Convention):
             for operation_name in self.graph.config.swagger_convention.operations
         }
 
-    @property
-    def operations(self):
+    def find_matching_endpoints(self, swagger_ns):
         """
         Compute current matching endpoints.
 
@@ -35,7 +34,7 @@ class SwaggerConvention(Convention):
         def match_func(operation, ns, rule):
             # only expose endpoints that have the correct path prefix and operation
             return (
-                rule.rule.startswith(make_path(self.graph, ns.path)) and
+                rule.rule.startswith(make_path(self.graph, swagger_ns.path)) and
                 operation in self.matching_operations
             )
 
@@ -48,7 +47,7 @@ class SwaggerConvention(Convention):
         """
         @self.graph.route(ns.singleton_path, Operation.Discover, ns)
         def discover():
-            swagger = build_swagger(self.graph, ns, self.operations)
+            swagger = build_swagger(self.graph, ns, self.find_matching_endpoints(ns))
             g.hide_body = True
             return jsonify(swagger)
 
@@ -76,7 +75,6 @@ def configure_swagger(graph):
         subject=graph.config.swagger_convention.name,
         version=graph.config.swagger_convention.version,
     )
-
     convention = SwaggerConvention(graph)
     convention.configure(ns, discover=tuple())
     return ns.subject

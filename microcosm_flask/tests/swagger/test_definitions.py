@@ -30,7 +30,6 @@ PERSON_MAPPINGS = {
 def test_build_swagger():
     graph = create_object_graph(name="example", testing=True)
     ns = Namespace(
-        path="/v1",
         subject=Person,
         version="v1",
     )

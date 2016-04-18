@@ -37,8 +37,7 @@ class DiscoveryConvention(Convention):
             for operation_name in self.graph.config.discovery_convention.operations
         }
 
-    @property
-    def operations(self):
+    def find_matching_endpoints(self, discovery_ns):
         """
         Compute current matching endpoints.
 
@@ -67,7 +66,7 @@ class DiscoveryConvention(Convention):
                 _links=Links({
                     "self": Link.for_(Operation.Discover, ns, qs=page.to_tuples()),
                     "search": [
-                        link for link in iter_links(self.operations, page)
+                        link for link in iter_links(self.find_matching_endpoints(ns), page)
                     ],
                 }).to_dict()
             )
