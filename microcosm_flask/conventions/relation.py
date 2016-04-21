@@ -7,6 +7,7 @@ a subject and an object.
 """
 from flask import jsonify
 from inflection import pluralize
+from marshmallow import Schema
 
 from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.encoding import (
@@ -44,6 +45,32 @@ class RelationConvention(Convention):
             return dump_response_data(definition.response_schema, response_data, Operation.CreateFor.value.default_code)
 
         create.__doc__ = "Create a new {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
+
+    def configure_retrievefor(self, ns, definition):
+        """
+        Register a relation endpoint.
+
+        The definition's func should be a retrieve function, which must:
+        - accept kwargs for path data and optional request data
+        - return an item
+
+        The definition's request_schema will be used to process query string arguments, if any.
+
+        :param ns: the namespace
+        :param definition: the endpoint definition
+
+        """
+        request_schema = definition.request_schema or Schema()
+
+        @self.graph.route(ns.relation_path, Operation.RetrieveFor, ns)
+        @qs(request_schema)
+        @response(definition.request_schema)
+        def retrieve(**path_data):
+            request_data = load_query_string_data(request_schema)
+            response_data = definition.func(**merge_data(path_data, request_data))
+            return dump_response_data(definition.response_schema, response_data)
+
+        retrieve.__doc__ = "Retrieve {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
 
     def configure_searchfor(self, ns, definition):
         """
