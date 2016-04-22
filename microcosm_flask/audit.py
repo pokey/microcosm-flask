@@ -43,12 +43,14 @@ def audit(func):
         try:
             response = func(*args, **kwargs)
         except Exception as error:
+            status_code = extract_status_code(error)
+            success = 0 < status_code < 400
             audit_dict.update(
-                success=False,
+                success=success,
                 message=extract_error_message(error)[:2048],
                 context=extract_context(error),
-                stack_trace=format_exc(limit=10),
-                status_code=extract_status_code(error),
+                stack_trace=None if success else format_exc(limit=10),
+                status_code=status_code,
             )
             raise
         else:
