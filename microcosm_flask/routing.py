@@ -9,6 +9,10 @@ from flask_cors import cross_origin
 from microcosm.api import defaults
 
 
+def make_path(graph, path):
+    return graph.config.route.path_prefix + path
+
+
 @defaults(
     converters=[
         "uuid",
@@ -55,7 +59,7 @@ def configure_route_decorator(graph):
                 func = graph.audit(func)
 
             graph.app.route(
-                graph.config.route.path_prefix + path,
+                make_path(graph, path),
                 endpoint=ns.endpoint_for(operation),
                 methods=[operation.value.method],
             )(func)

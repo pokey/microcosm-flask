@@ -27,21 +27,22 @@ from microcosm_flask.conventions.registry import (
 )
 from microcosm_flask.errors import ErrorSchema, ErrorContextSchema, SubErrorSchema
 from microcosm_flask.naming import name_for
+from microcosm_flask.routing import make_path
 from microcosm_flask.swagger.naming import operation_name, type_name
 from microcosm_flask.swagger.schema import build_parameter, build_schema
 
 
-def build_swagger(graph, version, path_prefix, operations):
+def build_swagger(graph, ns, operations):
     """
     Build out the top-level swagger definition.
 
     """
-    base_path = graph.config.route.path_prefix
+    base_path = make_path(graph, ns.path)
     schema = swagger.Swagger(
         swagger="2.0",
         info=swagger.Info(
             title=graph.metadata.name,
-            version=version,
+            version=ns.version,
         ),
         consumes=swagger.MediaTypeList([
             swagger.MimeType("application/json"),
@@ -49,25 +50,30 @@ def build_swagger(graph, version, path_prefix, operations):
         produces=swagger.MediaTypeList([
             swagger.MimeType("application/json"),
         ]),
-        basePath=base_path + "/" + version,
+        basePath=base_path,
         paths=swagger.Paths(),
         definitions=swagger.Definitions(),
     )
-    add_paths(schema.paths, base_path + path_prefix, operations)
+    add_paths(schema.paths, base_path, operations)
     add_definitions(schema.definitions, operations)
     schema.validate()
     return schema
 
 
-def add_paths(paths, path_prefix, operations):
+def add_paths(paths, base_path, operations):
     """
     Add paths to swagger.
 
     """
     for operation, ns, rule, func in operations:
-        path = build_path(operation, ns)[len(path_prefix):]
+        path = build_path(operation, ns)
+        if not path.startswith(base_path):
+            continue
         method = operation.value.method.lower()
-        paths.setdefault(path, swagger.PathItem())[method] = build_operation(operation, ns, rule, func)
+        paths.setdefault(
+            path[len(base_path):],
+            swagger.PathItem(),
+        )[method] = build_operation(operation, ns, rule, func)
 
 
 def add_definitions(definitions, operations):
@@ -192,7 +198,7 @@ def add_responses(swagger_operation, operation, ns, func):
         resource=type_name(name_for(ErrorSchema())),
     )
 
-    if hasattr(func, "__doc__"):
+    if getattr(func, "__doc__", None):
         description = func.__doc__.strip().splitlines()[0]
     else:
         description = "{} {}".format(operation.value.name, ns.subject_name)

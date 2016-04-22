@@ -7,28 +7,49 @@ Exposes swagger definitions for matching operations.
 from flask import jsonify, g
 
 from microcosm.api import defaults
+from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.registry import iter_endpoints
 from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
+from microcosm_flask.routing import make_path
 from microcosm_flask.swagger.definitions import build_swagger
 
 
-def register_swagger_endpoint(graph, ns, match_func):
-    """
-    Register a swagger endpoint for a set of operations.
+class SwaggerConvention(Convention):
 
-    """
-    @graph.route(ns.singleton_path, Operation.Discover, ns)
-    def discover():
-        operations = list(iter_endpoints(graph, match_func))
+    @property
+    def matching_operations(self):
+        return {
+            Operation.from_name(operation_name)
+            for operation_name in self.graph.config.swagger_convention.operations
+        }
 
-        swagger = build_swagger(graph, ns.version, ns.path, operations)
+    def find_matching_endpoints(self, swagger_ns):
+        """
+        Compute current matching endpoints.
 
-        g.hide_body = True
+        Evaluated as a property to defer evaluation.
 
-        return jsonify(swagger)
+        """
+        def match_func(operation, ns, rule):
+            # only expose endpoints that have the correct path prefix and operation
+            return (
+                rule.rule.startswith(make_path(self.graph, swagger_ns.path)) and
+                operation in self.matching_operations
+            )
 
-    return ns.subject
+        return list(iter_endpoints(self.graph, match_func))
+
+    def configure_discover(self, ns, definition):
+        """
+        Register a swagger endpoint for a set of operations.
+
+        """
+        @self.graph.route(ns.singleton_path, Operation.Discover, ns)
+        def discover():
+            swagger = build_swagger(self.graph, ns, self.find_matching_endpoints(ns))
+            g.hide_body = True
+            return jsonify(swagger)
 
 
 @defaults(
@@ -49,27 +70,11 @@ def configure_swagger(graph):
     Build a singleton endpoint that provides swagger definitions for all operations.
 
     """
-    name = graph.config.swagger_convention.name
-    version = graph.config.swagger_convention.version
-
-    base_path = graph.config.route.path_prefix
-    path_prefix = graph.config.swagger_convention.path_prefix + "/" + version
-
     ns = Namespace(
-        path=path_prefix,
-        subject=name,
-        version=version,
+        path=graph.config.swagger_convention.path_prefix,
+        subject=graph.config.swagger_convention.name,
+        version=graph.config.swagger_convention.version,
     )
-
-    matching_operations = {
-        Operation.from_name(operation_name)
-        for operation_name in graph.config.swagger_convention.operations
-    }
-
-    def match_func(operation, ns, rule):
-        return (
-            rule.rule.startswith(base_path + path_prefix) and
-            operation in matching_operations
-        )
-
-    return register_swagger_endpoint(graph, ns, match_func)
+    convention = SwaggerConvention(graph)
+    convention.configure(ns, discover=tuple())
+    return ns.subject
