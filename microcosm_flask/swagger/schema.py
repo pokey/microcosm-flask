@@ -11,6 +11,7 @@ from microcosm_flask.swagger.naming import type_name
 
 # see: https://github.com/marshmallow-code/apispec/blob/dev/apispec/ext/marshmallow/swagger.py
 FIELD_MAPPINGS = {
+    fields.Dict: ("object", None),
     fields.Integer: ("integer", "int32"),
     fields.Number: ("number", None),
     fields.Float: ("number", "float"),

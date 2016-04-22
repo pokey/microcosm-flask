@@ -26,6 +26,7 @@ class TestSchema(Schema):
     foo = fields.String(description="Foo", default="bar")
     choice = EnumField(Choices)
     names = fields.List(fields.String)
+    payload = fields.Dict()
     ref = fields.Nested(NewPersonSchema)
 
 
@@ -82,6 +83,13 @@ def test_field_array():
         "items": {
             "type": "string",
         }
+    })))
+
+
+def test_field_dict():
+    parameter = build_parameter(TestSchema().fields["payload"])
+    assert_that(parameter, is_(equal_to({
+        "type": "object",
     })))
 
 
