@@ -129,7 +129,7 @@ def configure_error_handlers(graph):
     """
 
     # override all of the werkzeug HTTPExceptions
-    for code in default_exceptions.iterkeys():
+    for code in default_exceptions.keys():
         graph.flask.error_handler_spec[None][code] = make_json_error
 
     # register catch all for user exceptions

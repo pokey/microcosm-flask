@@ -86,7 +86,7 @@ class TestQuery(object):
         }
         response = self.client.get(uri, query_string=query_string)
         assert_that(response.status_code, is_(equal_to(200)))
-        assert_that(loads(response.get_data()), is_(equal_to({
+        assert_that(loads(response.get_data().decode("utf-8")), is_(equal_to({
             "result": True,
             "value": "bar",
         })))
@@ -98,7 +98,7 @@ class TestQuery(object):
         """
         response = self.client.get("/api/v1/swagger")
         assert_that(response.status_code, is_(equal_to(200)))
-        swagger = loads(response.get_data())
+        swagger = loads(response.get_data().decode("utf-8"))
         assert_that(swagger["paths"], is_(equal_to({
             "/foo/get": {
                 "get": {
