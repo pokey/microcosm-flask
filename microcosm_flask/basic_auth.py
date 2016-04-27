@@ -12,6 +12,7 @@ Usage:
 """
 from base64 import b64encode
 
+from flask import request
 from flask.ext.basicauth import BasicAuth
 from werkzeug.exceptions import Unauthorized
 
@@ -30,7 +31,7 @@ def encode_basic_auth(username, password):
                 username,
                 password,
             ).encode("utf-8")
-        )
+        ).decode("utf-8")
     )
 
 
