@@ -12,7 +12,6 @@ Usage:
 """
 from base64 import b64encode
 
-from flask import request
 from flask.ext.basicauth import BasicAuth
 from werkzeug.exceptions import Unauthorized
 
