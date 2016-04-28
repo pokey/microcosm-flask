@@ -5,9 +5,9 @@ Push resource definitions to an output destination.
 from json import dumps
 from logging import getLogger
 from sys import stdout
-from urlparse import urlparse, urlunparse
 
 from requests import put
+from six.moves.urllib.parse import urlparse, urlunparse
 from yaml import safe_dump_all
 
 

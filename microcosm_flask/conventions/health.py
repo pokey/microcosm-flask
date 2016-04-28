@@ -21,6 +21,9 @@ class HealthResult(object):
     def __nonzero__(self):
         return self.error is None
 
+    def __bool__(self):
+        return self.error is None
+
     def __str__(self):
         return "ok" if self.error is None else self.error
 

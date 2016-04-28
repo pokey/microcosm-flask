@@ -5,6 +5,7 @@ Naming conventions.
 from inspect import isclass
 
 from inflection import underscore
+from six import string_types
 
 
 def name_for(obj):
@@ -14,7 +15,7 @@ def name_for(obj):
     Allows overriding of default names using the `__alias__` attribute.
 
     """
-    if isinstance(obj, basestring):
+    if isinstance(obj, string_types):
         return obj
 
     cls = obj if isclass(obj) else obj.__class__
