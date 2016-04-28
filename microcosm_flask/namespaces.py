@@ -5,10 +5,8 @@ In conjunction with the `Operation` enum, defines a naming convention for HTTP e
 which in turn provides a discovery mechanism API routes.
 
 """
-from urllib import urlencode
-from urlparse import urljoin
-
 from flask import request, url_for
+from six.moves.urllib.parse import urlencode, urljoin
 
 from microcosm_flask.naming import (
     collection_path_for,

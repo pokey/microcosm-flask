@@ -25,7 +25,7 @@ def test_health_check():
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(200)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "name": "example",
         "ok": True,
@@ -46,7 +46,7 @@ def test_health_check_custom_check():
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(200)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "name": "example",
         "ok": True,
@@ -76,7 +76,7 @@ def test_health_check_custom_check_failed():
 
     response = client.get("/api/health")
     assert_that(response.status_code, is_(equal_to(503)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "name": "example",
         "ok": False,

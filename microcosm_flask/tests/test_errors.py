@@ -51,7 +51,7 @@ def test_werkzeug_http_error():
 
     response = client.get("/not_found")
     assert_that(response.status_code, is_(equal_to(404)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 404,
         "message": "The requested URL was not found on the server.  "
@@ -72,7 +72,7 @@ def test_no_route():
 
     response = client.get("/no_route")
     assert_that(response.status_code, is_(equal_to(404)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 404,
         "message": "The requested URL was not found on the server.  "
@@ -98,7 +98,7 @@ def test_werkzeug_http_error_custom_message():
 
     response = client.get("/why_me")
     assert_that(response.status_code, is_(equal_to(500)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 500,
         "message": "Why me?",
@@ -123,7 +123,7 @@ def test_custom_error():
 
     response = client.get("/unexpected")
     assert_that(response.status_code, is_(equal_to(500)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 500,
         "message": "unexpected",
@@ -148,7 +148,7 @@ def test_custom_error_status_code():
 
     response = client.get("/malformed_syntax")
     assert_that(response.status_code, is_(equal_to(400)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 400,
         "message": "MyValidationError",
@@ -173,7 +173,7 @@ def test_custom_error_retryable():
 
     response = client.get("/conflict")
     assert_that(response.status_code, is_(equal_to(409)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 409,
         "message": "Conflict",
@@ -208,7 +208,7 @@ def test_error_wrap():
 
     response = client.get("/wrap")
     assert_that(response.status_code, is_(equal_to(500)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 500,
         "message": "fail",

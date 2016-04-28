@@ -55,7 +55,7 @@ class TestCrud(object):
         if status_code == 204:
             response_data = None
         else:
-            response_data = loads(response.get_data())
+            response_data = loads(response.get_data().decode("utf-8"))
 
         # validate data if provided
         if response_data is not None and data is not None:
@@ -105,7 +105,7 @@ class TestCrud(object):
     def test_create_empty_object(self):
         response = self.client.post("/api/person", data='{}')
         self.assert_response(response, 422)
-        response_data = loads(response.get_data())
+        response_data = loads(response.get_data().decode("utf-8"))
         assert_that(response_data["context"]["errors"], contains_inanyorder(
             {
                 "message": "Could not validate field: lastName",

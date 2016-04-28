@@ -29,7 +29,7 @@ def test_discovery():
 
     response = client.get("/api/")
     assert_that(response.status_code, is_(equal_to(200)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "_links": {
             "search": [{

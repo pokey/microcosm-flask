@@ -35,7 +35,7 @@ def test_basic_auth():
 
     response = client.get("/unauthorized")
     assert_that(response.status_code, is_(equal_to(401)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 401,
         "message": "The server could not verify that you are authorized to access the URL requested.  "
@@ -64,7 +64,7 @@ def test_basic_auth_default_realm():
 
     response = client.get("/unauthorized")
     assert_that(response.status_code, is_(equal_to(401)))
-    data = loads(response.get_data())
+    data = loads(response.get_data().decode("utf-8"))
     assert_that(data, is_(equal_to({
         "code": 401,
         "message": "The server could not verify that you are authorized to access the URL requested.  "
