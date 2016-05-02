@@ -52,9 +52,10 @@ class Convention(object):
 
             try:
                 configure_func = self._find_func(operation)
-                configure_func(ns, self._make_definition(definition))
             except AttributeError:
                 pass
+            else:
+                configure_func(ns, self._make_definition(definition))
 
     def _find_func(self, operation):
         """
