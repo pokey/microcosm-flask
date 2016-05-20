@@ -26,6 +26,9 @@ class JSON(object):
     def __getitem__(self, key):
         return self.dct[key]
 
+    def get(self, key):
+        return self.dct.get(key)
+
     def describe_to(self, description):
         description.append(prettify(self.dct))
 
