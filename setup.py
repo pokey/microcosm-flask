@@ -17,7 +17,7 @@ setup(
     keywords="microcosm",
     install_requires=[
         "enum34>=1.1.2",
-        "Flask>=0.10.1",
+        "Flask>=0.11",
         "Flask-BasicAuth>=0.2.0",
         "flask-cors>=2.1.2",
         "Flask-UUID>=0.2",

@@ -127,10 +127,9 @@ def configure_error_handlers(graph):
     Register error handlers.
 
     """
-
     # override all of the werkzeug HTTPExceptions
     for code in default_exceptions.keys():
-        graph.flask.error_handler_spec[None][code] = make_json_error
+        graph.flask.register_error_handler(code, make_json_error)
 
     # register catch all for user exceptions
-    graph.flask.error_handler_spec[None][None] = [(Exception, make_json_error)]
+    graph.flask.register_error_handler(Exception, make_json_error)

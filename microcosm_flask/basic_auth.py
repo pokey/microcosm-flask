@@ -12,7 +12,7 @@ Usage:
 """
 from base64 import b64encode
 
-from flask.ext.basicauth import BasicAuth
+from flask_basicauth import BasicAuth
 from werkzeug.exceptions import Unauthorized
 
 from microcosm.api import defaults
