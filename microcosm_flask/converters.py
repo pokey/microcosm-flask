@@ -2,7 +2,7 @@
 Flask path converters.
 
 """
-from flask.ext.uuid import FlaskUUID
+from flask_uuid import FlaskUUID
 
 
 def configure_uuid(graph):
