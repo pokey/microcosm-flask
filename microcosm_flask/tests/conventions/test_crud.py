@@ -16,6 +16,7 @@ from microcosm_flask.conventions.crud import configure_crud
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import PageSchema
 from microcosm_flask.tests.conventions.fixtures import (
+    NewPersonBatchSchema,
     NewPersonSchema,
     person_create,
     person_delete,
@@ -23,7 +24,9 @@ from microcosm_flask.tests.conventions.fixtures import (
     person_retrieve,
     person_search,
     person_update,
+    person_update_batch,
     Person,
+    PersonBatchSchema,
     PersonSchema,
     PERSON_ID_1,
     PERSON_ID_2,
@@ -33,6 +36,7 @@ from microcosm_flask.tests.conventions.fixtures import (
 PERSON_MAPPINGS = {
     Operation.Create: (person_create, NewPersonSchema(), PersonSchema()),
     Operation.Delete: (person_delete,),
+    Operation.UpdateBatch: (person_update_batch, NewPersonBatchSchema(), PersonBatchSchema()),
     Operation.Replace: (person_replace, NewPersonSchema(), PersonSchema()),
     Operation.Retrieve: (person_retrieve, PersonSchema()),
     Operation.Search: (person_search, PageSchema(), PersonSchema()),
@@ -140,6 +144,27 @@ class TestCrud(object):
                     ],
                 }]
             }
+        })
+
+    def test_update_batch(self):
+        request_data = {
+            "items": [{
+                "firstName": "Bob",
+                "lastName": "Jones",
+            }],
+        }
+        response = self.client.patch("/api/person", data=dumps(request_data))
+        self.assert_response(response, 200, {
+            "items": [{
+                "id": str(PERSON_ID_2),
+                "firstName": "Bob",
+                "lastName": "Jones",
+                "_links": {
+                    "self": {
+                        "href": "http://localhost/api/person/{}".format(PERSON_ID_2),
+                    }
+                },
+            }],
         })
 
     def test_retrieve(self):

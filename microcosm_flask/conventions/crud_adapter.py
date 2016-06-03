@@ -46,3 +46,22 @@ class CRUDStoreAdapter(object):
         identifier = kwargs.pop(self.identifier_key)
         model = self.store.model_class(id=identifier, **kwargs)
         return self.store.update(identifier, model)
+
+    def update_batch(self, **kwargs):
+        """
+        Simplistic batch update operation implemented in terms of `replace()`.
+
+        Assumes that:
+
+         - Request and response schemas contains lists of items.
+         - Request items define a primary key identifier
+         - The entire batch succeeds or fails together.
+
+        """
+        items = kwargs.pop("items")
+        return dict(
+            items=[
+                self.replace(**item)
+                for item in items
+            ],
+        )

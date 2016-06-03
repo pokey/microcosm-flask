@@ -74,6 +74,30 @@ class CRUDConvention(Convention):
 
         create.__doc__ = "Create a new {}".format(ns.subject_name)
 
+    def configure_updatebatch(self, ns, definition):
+        """
+        Register an update batch endpoint.
+
+        The definition's func should be an update function, which must:
+        - accept kwargs for the request and path data
+        - return a new item
+
+        :param ns: the namespace
+        :param definition: the endpoint definition
+
+        """
+        operation = Operation.UpdateBatch
+
+        @self.graph.route(ns.collection_path, operation, ns)
+        @request(definition.request_schema)
+        @response(definition.response_schema)
+        def update_batch(**path_data):
+            request_data = load_request_data(definition.request_schema)
+            response_data = definition.func(**merge_data(path_data, request_data))
+            return dump_response_data(definition.response_schema, response_data, operation.value.default_code)
+
+        update_batch.__doc__ = "Update a batch of {}".format(ns.subject_name)
+
     def configure_retrieve(self, ns, definition):
         """
         Register a retrieve endpoint.
