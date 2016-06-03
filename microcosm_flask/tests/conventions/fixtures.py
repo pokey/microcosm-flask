@@ -22,6 +22,10 @@ class NewPersonSchema(Schema):
     lastName = fields.Str(attribute="last_name", required=True)
 
 
+class NewPersonBatchSchema(Schema):
+    items = fields.List(fields.Nested(NewPersonSchema))
+
+
 class PersonSchema(NewPersonSchema):
     id = fields.UUID(required=True)
     _links = fields.Method("get_links", dump_only=True)
@@ -30,6 +34,10 @@ class PersonSchema(NewPersonSchema):
         links = Links()
         links["self"] = Link.for_(Operation.Retrieve, Person, person_id=obj.id)
         return links.to_dict()
+
+
+class PersonBatchSchema(NewPersonSchema):
+    items = fields.List(fields.Nested(PersonSchema))
 
 
 PERSON_ID_1 = uuid4()
@@ -43,6 +51,15 @@ def person_create(**kwargs):
 
 def person_search(offset, limit):
     return [PERSON_1], 1
+
+
+def person_update_batch(items):
+    return dict(
+        items=[
+            person_create(**item)
+            for item in items
+        ]
+    )
 
 
 def person_retrieve(person_id):
