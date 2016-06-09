@@ -2,11 +2,16 @@
 Generate JSON Schema for Marshmallow schemas.
 
 """
+from logging import getLogger
+
 from marshmallow import fields
 
 from microcosm_flask.fields import EnumField
 from microcosm_flask.naming import name_for
 from microcosm_flask.swagger.naming import type_name
+
+
+logger = getLogger("microcosm_flask.swagger")
 
 
 # see: https://github.com/marshmallow-code/apispec/blob/dev/apispec/ext/marshmallow/swagger.py
@@ -40,7 +45,18 @@ def build_parameter(field):
     See: https://github.com/marshmallow-code/apispec/blob/dev/apispec/ext/marshmallow/swagger.py#L81
 
     """
-    field_type, field_format = FIELD_MAPPINGS[type(field)]
+    try:
+        field_type, field_format = FIELD_MAPPINGS[type(field)]
+    except KeyError:
+        if hasattr(field, "__swagger_type__"):
+            field_type = getattr(field, "__swagger_type__")
+            field_format = getattr(field, "__swagger_format__", None)
+        else:
+            logger.exception("No mapped swagger type for marshmallow field: {}".format(
+                field,
+            ))
+            raise
+
     parameter = {}
     if field_type:
         parameter["type"] = field_type

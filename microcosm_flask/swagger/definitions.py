@@ -16,6 +16,7 @@ Note that:
 
 
 """
+from logging import getLogger
 from werkzeug.routing import BuildError
 
 from openapi import model as swagger
@@ -30,6 +31,9 @@ from microcosm_flask.naming import name_for
 from microcosm_flask.routing import make_path
 from microcosm_flask.swagger.naming import operation_name, type_name
 from microcosm_flask.swagger.schema import build_parameter, build_schema
+
+
+logger = getLogger("microcosm_flask.swagger")
 
 
 def build_swagger(graph, ns, operations):
@@ -56,7 +60,12 @@ def build_swagger(graph, ns, operations):
     )
     add_paths(schema.paths, base_path, operations)
     add_definitions(schema.definitions, operations)
-    schema.validate()
+    try:
+        schema.validate()
+    except:
+        logger.exception("Swagger definition did not validate against swagger schema")
+        raise
+
     return schema
 
 
