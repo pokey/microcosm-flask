@@ -56,12 +56,15 @@ class SwaggerConvention(Convention):
     name="swagger",
     operations=[
         "create",
+        "create_for",
         "delete",
         "replace",
         "retrieve",
+        "retrieve_for",
         "search",
         "search_for",
         "update",
+        "update_batch",
     ],
     path_prefix="",
 )

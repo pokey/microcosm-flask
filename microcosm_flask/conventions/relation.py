@@ -64,7 +64,7 @@ class RelationConvention(Convention):
 
         @self.graph.route(ns.relation_path, Operation.RetrieveFor, ns)
         @qs(request_schema)
-        @response(definition.request_schema)
+        @response(definition.response_schema)
         def retrieve(**path_data):
             request_data = load_query_string_data(request_schema)
             response_data = definition.func(**merge_data(path_data, request_data))
