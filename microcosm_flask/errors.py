@@ -34,14 +34,14 @@ def extract_status_code(error):
 
     """
     try:
-        return error.code
-    except AttributeError:
+        return int(error.code)
+    except (AttributeError, TypeError, ValueError):
         try:
-            return error.status_code
-        except AttributeError:
+            return int(error.status_code)
+        except (AttributeError, TypeError, ValueError):
             try:
-                return error.errno
-            except AttributeError:
+                return int(error.errno)
+            except (AttributeError, TypeError, ValueError):
                 return 500
 
 
