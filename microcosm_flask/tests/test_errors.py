@@ -35,6 +35,10 @@ class MyConflictError(Exception):
         )
 
 
+class NonNumericError(Exception):
+    code = "foo"
+
+
 def test_werkzeug_http_error():
     """
     Explicit HTTP errors are reported as expected.
@@ -214,4 +218,29 @@ def test_error_wrap():
         "message": "fail",
         "retryable": False,
         "context": {"errors": []}
+    })))
+
+
+def test_non_numeric_error():
+    """
+    Explicit HTTP errors are reported as expected.
+
+    """
+    graph = create_object_graph(name="example", testing=True)
+
+    @graph.app.route("/foo")
+    @graph.audit
+    def foo():
+        raise NonNumericError("Hello")
+
+    client = graph.app.test_client()
+
+    response = client.get("/foo")
+    assert_that(response.status_code, is_(equal_to(500)))
+    data = loads(response.get_data().decode("utf-8"))
+    assert_that(data, is_(equal_to({
+        "code": 500,
+        "message": "Hello",
+        "retryable": False,
+        "context": {"errors": []},
     })))
