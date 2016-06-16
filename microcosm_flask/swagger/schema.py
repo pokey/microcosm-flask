@@ -88,10 +88,7 @@ def build_schema(marshmallow_schema):
     Build JSON schema from a marshmallow schema.
 
     """
-    fields = [
-        (name, marshmallow_schema.fields[name])
-        for name in sorted(marshmallow_schema.fields.keys())
-    ]
+    fields = list(iter_fields(marshmallow_schema))
     schema = {
         "type": "object",
         "properties": {
@@ -105,3 +102,39 @@ def build_schema(marshmallow_schema):
         ]
     }
     return schema
+
+
+def iter_fields(marshmallow_schema):
+    """
+    Iterate through marshmallow schema fields.
+
+    Generates: name, field pairs
+
+    """
+    for name in sorted(marshmallow_schema.fields.keys()):
+        yield name, marshmallow_schema.fields[name]
+
+
+def iter_schemas(marshmallow_schema):
+    """
+    Build zero or more JSON schemas for a marshmallow schema.
+
+    Generates: name, schema pairs.
+
+    """
+    if not marshmallow_schema:
+        return
+
+    base_schema = build_schema(marshmallow_schema)
+    base_schema_name = type_name(name_for(marshmallow_schema))
+    yield base_schema_name, base_schema
+
+    for name, field in iter_fields(marshmallow_schema):
+        if isinstance(field, fields.Nested):
+            nested_schema = build_schema(field.schema)
+            nested_schema_name = type_name(name_for(field.schema))
+            yield nested_schema_name, nested_schema
+        if isinstance(field, fields.List) and isinstance(field.container, fields.Nested):
+            nested_schema = build_schema(field.container.schema)
+            nested_schema_name = type_name(name_for(field.container.schema))
+            yield nested_schema_name, nested_schema

@@ -30,7 +30,7 @@ from microcosm_flask.errors import ErrorSchema, ErrorContextSchema, SubErrorSche
 from microcosm_flask.naming import name_for
 from microcosm_flask.routing import make_path
 from microcosm_flask.swagger.naming import operation_name, type_name
-from microcosm_flask.swagger.schema import build_parameter, build_schema
+from microcosm_flask.swagger.schema import build_parameter, iter_schemas
 
 
 logger = getLogger("microcosm_flask.swagger")
@@ -90,20 +90,24 @@ def add_definitions(definitions, operations):
     Add definitions to swagger.
 
     """
+    for definition_schema in iter_definitions(definitions, operations):
+        for name, schema in iter_schemas(definition_schema):
+            definitions.setdefault(name, swagger.Schema(schema))
+
+
+def iter_definitions(definitions, operations):
+    """
+    Generate definitions to be converted to swagger schema.
+
+    """
     # general error schema per errors.py
     for error_schema_class in [ErrorSchema, ErrorContextSchema, SubErrorSchema]:
-        error_schema = error_schema_class()
-        definitions[type_name(name_for(error_schema))] = swagger.Schema(build_schema(error_schema))
+        yield error_schema_class()
 
     # add all request and response schemas
     for operation, obj, rule, func in operations:
-        request_schema = get_request_schema(func)
-        if request_schema:
-            definitions.setdefault(type_name(name_for(request_schema)), swagger.Schema(build_schema(request_schema)))
-
-        response_schema = get_response_schema(func)
-        if response_schema:
-            definitions.setdefault(type_name(name_for(response_schema)), swagger.Schema(build_schema(response_schema)))
+        yield get_request_schema(func)
+        yield get_response_schema(func)
 
 
 def build_path(operation, ns):
