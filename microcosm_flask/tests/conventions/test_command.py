@@ -117,13 +117,20 @@ class TestCommand(object):
                             }
                         }
                     },
-                    "parameters": [{
-                        "schema": {
-                            "$ref": "#/definitions/CommandArgument",
+                    "parameters": [
+                        {
+                            "in": "header",
+                            "name": "X-Response-Skip-Null",
+                            "required": False,
+                            "type": "string",
                         },
-                        "name": "body",
-                        "in": "body",
-                    }
+                        {
+                            "schema": {
+                                "$ref": "#/definitions/CommandArgument",
+                            },
+                            "name": "body",
+                            "in": "body",
+                        },
                     ],
                     "operationId": "command",
                 }
