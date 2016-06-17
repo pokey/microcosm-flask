@@ -116,12 +116,20 @@ class TestQuery(object):
                             }
                         }
                     },
-                    "parameters": [{
-                        "required": False,
-                        "type": "string",
-                        "name": "value",
-                        "in": "query",
-                    }],
+                    "parameters": [
+                        {
+                            "in": "header",
+                            "name": "X-Response-Skip-Null",
+                            "required": False,
+                            "type": "string",
+                        },
+                        {
+                            "required": False,
+                            "type": "string",
+                            "name": "value",
+                            "in": "query",
+                        },
+                    ],
                     "operationId": "query",
                 }
             }
