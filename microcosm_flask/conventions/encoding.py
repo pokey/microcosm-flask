@@ -68,7 +68,14 @@ def dump_response_data(response_schema, response_data, status_code=200, headers=
     """
     if response_schema:
         response_data = response_schema.dump(response_data).data
-    response = jsonify(response_data)
+
+    # swagger does not currently support null values; remove these conditionally
+    include_null_values = not request.headers.get("X-Response-Skip-Null")
+    response = jsonify({
+        key: value
+        for key, value in response_data.items()
+        if include_null_values or value is not None
+    })
     response.headers = Headers(headers or {})
     response.status_code = status_code
     return response

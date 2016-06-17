@@ -135,6 +135,19 @@ def body_param(schema):
     })
 
 
+def header_param(name, required=False, param_type="string"):
+    """
+    Build a header parameter definition.
+
+    """
+    return swagger.HeaderParameterSubSchema(**{
+        "name": name,
+        "in": "header",
+        "required": required,
+        "type": param_type,
+    })
+
+
 def query_param(name, field, required=False):
     """
     Build a query parameter definition.
@@ -172,6 +185,11 @@ def build_operation(operation, ns, rule, func):
         ]),
         responses=swagger.Responses(),
         tags=[ns.subject_name],
+    )
+
+    # custom header parameter
+    swagger_operation.parameters.append(
+        header_param("X-Response-Skip-Null")
     )
 
     # path parameters

@@ -98,7 +98,7 @@ def build_schema(marshmallow_schema):
         "required": [
             field.dump_to or name
             for name, field in fields
-            if field.required
+            if field.required and not field.allow_none
         ]
     }
     return schema
