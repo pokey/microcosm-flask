@@ -51,6 +51,13 @@ def parse_args():
         help="Exclude the first resource from pull output",
     )
     parser.add_argument(
+        "--batch-size",
+        "-b",
+        type=int,
+        default=1,
+        help="Exclude the first resource from pull output",
+    )
+    parser.add_argument(
         "input",
         help="Input location for resources",
     )
