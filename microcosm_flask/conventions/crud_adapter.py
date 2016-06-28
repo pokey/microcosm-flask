@@ -59,9 +59,19 @@ class CRUDStoreAdapter(object):
 
         """
         items = kwargs.pop("items")
+
+        def transform(item):
+            """
+            Transform the dictionary expected for replace (which uses the URI path's id)
+            into the resource expected from individual resources (which uses plain id).
+
+            """
+            item[self.identifier_key] = item.pop("id")
+            return item
+
         return dict(
             items=[
-                self.replace(**item)
+                self.replace(**transform(item))
                 for item in items
             ],
         )

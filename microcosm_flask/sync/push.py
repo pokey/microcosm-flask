@@ -6,7 +6,7 @@ from json import dumps
 from logging import getLogger
 from sys import stdout
 
-from requests import put
+from requests import Session
 from six.moves.urllib.parse import urlparse, urlunparse
 from yaml import safe_dump_all
 
@@ -25,7 +25,7 @@ def push_yaml(inputs, destination):
     safe_dump_all(({href: resource} for href, resource in inputs), destination)
 
 
-def push_json(inputs, base_url):
+def push_json(inputs, base_url, batch_size):
     """
     Write inputs to remote URL as JSON.
 
@@ -34,6 +34,10 @@ def push_json(inputs, base_url):
 
     """
     parsed_base_url = urlparse(base_url)
+    session = Session()
+
+    current_uri = None
+    current_batch = []
 
     for href, resource in inputs:
         # Skip over links-only (discovery) resources
@@ -47,22 +51,67 @@ def push_json(inputs, base_url):
             scheme=parsed_base_url.scheme,
             netloc=parsed_base_url.netloc,
         ))
-        push_resource_json(uri, resource)
+
+        if batch_size == 1:
+            push_resource_json(session, uri, resource)
+            continue
+
+        # batch handling
+        collection_uri = uri.rsplit("/", 1)[0]
+
+        if any((
+            current_uri is not None and current_uri != collection_uri,
+            len(current_batch) >= batch_size,
+        )):
+            push_resource_json_batch(session, current_uri, current_batch)
+            current_batch = []
+
+        current_uri = collection_uri
+        current_batch.append(resource)
+
+    push_resource_json_batch(session, current_uri, current_batch)
 
 
-def push_resource_json(uri, resource):
+def push_resource_json(session, uri, resource):
     """
     Push a single resource as JSON to a URI.
 
     Assumes that the backend supports a replace/put convention.
 
     """
-    # We don't want to submit links back; they are synthetic
     logger.debug("Pushing resource for {}".format(uri))
 
-    response = put(
+    response = session.put(
         uri,
         data=dumps(resource),
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        response.raise_for_status()
+    except:
+        logger.warn("Unable to replace {}".format(
+            uri,
+        ))
+        raise
+
+
+def push_resource_json_batch(session, uri, resources):
+    """
+    Push a single resource as JSON to a URI.
+
+    Assumes that the backend supports a replace/put convention.
+
+    """
+    if not resources:
+        return
+
+    logger.debug("Pushing resource batch of size {} for {}".format(len(resources), uri))
+
+    response = session.patch(
+        uri,
+        data=dumps(dict(
+            items=resources,
+        )),
         headers={"Content-Type": "application/json"},
     )
     try:
@@ -88,7 +137,7 @@ def push(args, inputs):
     if args.output == "-":
         push_yaml(inputs, stdout)
     elif args.output.startswith("http"):
-        push_json(inputs, args.output)
+        push_json(inputs, args.output, args.batch_size)
     else:
         with open(args.output, "w") as file_:
             push_yaml(inputs, file_)
