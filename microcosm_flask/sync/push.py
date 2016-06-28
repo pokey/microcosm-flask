@@ -6,7 +6,7 @@ from json import dumps
 from logging import getLogger
 from sys import stdout
 
-from requests import patch, put
+from requests import Session
 from six.moves.urllib.parse import urlparse, urlunparse
 from yaml import safe_dump_all
 
@@ -34,6 +34,7 @@ def push_json(inputs, base_url, batch_size):
 
     """
     parsed_base_url = urlparse(base_url)
+    session = Session()
 
     current_uri = None
     current_batch = []
@@ -52,7 +53,7 @@ def push_json(inputs, base_url, batch_size):
         ))
 
         if batch_size == 1:
-            push_resource_json(uri, resource)
+            push_resource_json(session, uri, resource)
             continue
 
         # batch handling
@@ -62,16 +63,16 @@ def push_json(inputs, base_url, batch_size):
             current_uri is not None and current_uri != collection_uri,
             len(current_batch) >= batch_size,
         )):
-            push_resource_json_batch(current_uri, current_batch)
+            push_resource_json_batch(session, current_uri, current_batch)
             current_batch = []
 
         current_uri = collection_uri
         current_batch.append(resource)
 
-    push_resource_json_batch(current_uri, current_batch)
+    push_resource_json_batch(session, current_uri, current_batch)
 
 
-def push_resource_json(uri, resource):
+def push_resource_json(session, uri, resource):
     """
     Push a single resource as JSON to a URI.
 
@@ -80,7 +81,7 @@ def push_resource_json(uri, resource):
     """
     logger.debug("Pushing resource for {}".format(uri))
 
-    response = put(
+    response = session.put(
         uri,
         data=dumps(resource),
         headers={"Content-Type": "application/json"},
@@ -94,7 +95,7 @@ def push_resource_json(uri, resource):
         raise
 
 
-def push_resource_json_batch(uri, resources):
+def push_resource_json_batch(session, uri, resources):
     """
     Push a single resource as JSON to a URI.
 
@@ -104,9 +105,9 @@ def push_resource_json_batch(uri, resources):
     if not resources:
         return
 
-    logger.debug("Pushing resource batch for {}".format(uri))
+    logger.debug("Pushing resource batch of size {} for {}".format(len(resources), uri))
 
-    response = patch(
+    response = session.patch(
         uri,
         data=dumps(dict(
             items=resources,
