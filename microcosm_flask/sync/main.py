@@ -55,7 +55,7 @@ def parse_args():
         "-b",
         type=int,
         default=1,
-        help="Exclude the first resource from pull output",
+        help="Batch size (requires backend PATCH support if >1)",
     )
     parser.add_argument(
         "input",
