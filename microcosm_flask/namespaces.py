@@ -5,8 +5,11 @@ In conjunction with the `Operation` enum, defines a naming convention for HTTP e
 which in turn provides a discovery mechanism API routes.
 
 """
+from re import match
+
 from flask import request, url_for
 from six.moves.urllib.parse import urlencode, urljoin
+from werkzeug.exceptions import InternalServerError
 
 from microcosm_flask.naming import (
     collection_path_for,
@@ -95,30 +98,30 @@ class Namespace(object):
         Examples: `foo.search`, `bar.search_for.baz`
 
         """
-        if self.object_ is not None:
-            return operation.value.pattern.format(
-                self.subject_name,
-                operation.value.name,
-                self.object_name,
-            )
-        else:
-            return operation.value.pattern.format(
-                self.subject_name,
-                operation.value.name,
-            )
+        return operation.value.pattern.format(
+            subject=self.subject_name,
+            operation=operation.value.name,
+            object_=self.object_name if self.object_ else None,
+            version=self.version,
+        )
 
     @staticmethod
-    def parse_endpoint(name):
+    def parse_endpoint(endpoint):
         """
         Convert an endpoint name into an (operation, ns) tuple.
 
         """
-        parts = name.split(".")
+        # compute the operation
+        parts = endpoint.split(".")
         operation = Operation.from_name(parts[1])
-        if len(parts) > 2:
-            return operation, Namespace(subject=parts[0], object_=parts[2])
-        else:
-            return operation, Namespace(subject=parts[0])
+
+        # extract its parts
+        matcher = match(operation.endpoint_pattern, endpoint)
+        if not matcher:
+            raise InternalServerError("Malformed operation endpoint: {}".format(endpoint))
+        kwargs = matcher.groupdict()
+        del kwargs["operation"]
+        return operation, Namespace(**kwargs)
 
     def url_for(self, operation, **kwargs):
         """

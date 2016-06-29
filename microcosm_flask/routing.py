@@ -45,7 +45,6 @@ def configure_route_decorator(graph):
         :param operation: an `Operation` enum value
         :param ns: a `Namespace` instance
         """
-
         def decorator(func):
             if graph.config.route.enable_cors:
                 func = cross_origin(supports_credentials=True)(func)
