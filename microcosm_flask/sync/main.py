@@ -58,6 +58,10 @@ def parse_args():
         help="Batch size (requires backend PATCH support if >1)",
     )
     parser.add_argument(
+        "--enable-sessions",
+        action="store_true",
+    )
+    parser.add_argument(
         "input",
         help="Input location for resources",
     )
