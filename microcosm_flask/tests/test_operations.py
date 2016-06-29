@@ -18,3 +18,22 @@ def test_from_name():
     """
     assert_that(Operation.from_name("search"), is_(equal_to(Operation.Search)))
     assert_that(Operation.from_name("Create"), is_(equal_to(Operation.Create)))
+
+
+def test_endpoint_pattern():
+    """
+    Operations define valid endpoint patterns.
+
+    """
+    assert_that(
+        Operation.DiscoverVersion.endpoint_pattern,
+        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)[.](?P<version>[^.]*)")),
+    )
+    assert_that(
+        Operation.Search.endpoint_pattern,
+        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)")),
+    )
+    assert_that(
+        Operation.SearchFor.endpoint_pattern,
+        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)[.](?P<object_>[^.]*)")),
+    )

@@ -56,6 +56,18 @@ def test_parse_endpoint_relation():
     assert_that(ns.object_, is_(equal_to("bar")))
 
 
+def test_parse_endpoint_swagger():
+    """
+    Versioned discovery endpoint can be parsed.
+
+    """
+    operation, ns = Namespace.parse_endpoint("swagger.discover_version.v2")
+    assert_that(operation, is_(equal_to(Operation.DiscoverVersion)))
+    assert_that(ns.subject, is_(equal_to("swagger")))
+    assert_that(ns.version, is_(equal_to("v2")))
+    assert_that(ns.object_, is_(none()))
+
+
 def test_operation_url_for():
     """
     Operations can resolve themselves via Flask's `url_for`.

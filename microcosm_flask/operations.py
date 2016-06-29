@@ -14,8 +14,10 @@ from enum import Enum, unique
 OperationInfo = namedtuple("OperationInfo", ["name", "method", "pattern", "default_code"])
 
 
-NODE_PATTERN = "{}.{}"
-EDGE_PATTERN = "{}.{}.{}"
+# NB: Namespace.parse_endpoint requires that operation is the second argument
+NODE_PATTERN = "{subject}.{operation}"
+EDGE_PATTERN = "{subject}.{operation}.{object_}"
+VERSIONED_NODE_PATTERN = "{subject}.{operation}.{version}"
 
 
 @unique
@@ -27,6 +29,7 @@ class Operation(Enum):
     """
     # discovery operation
     Discover = OperationInfo("discover", "GET", NODE_PATTERN, 200)
+    DiscoverVersion = OperationInfo("discover_version", "GET", VERSIONED_NODE_PATTERN, 200)
 
     # collection operations
     Search = OperationInfo("search", "GET", NODE_PATTERN, 200)
@@ -55,3 +58,15 @@ class Operation(Enum):
                 return operation
         else:
             raise ValueError(name)
+
+    @property
+    def endpoint_pattern(self):
+        """
+        Convert the operation's pattern into a regex matcher.
+
+        """
+        parts = self.value.pattern.split(".")
+        return "[.]".join(
+            "(?P<{}>[^.]*)".format(part[1:-1])
+            for part in parts
+        )

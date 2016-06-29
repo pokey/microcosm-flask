@@ -38,6 +38,16 @@ FIELD_MAPPINGS = {
 }
 
 
+SWAGGER_TYPE = "__swagger_type__"
+SWAGGER_FORMAT = "__swagger_format__"
+
+
+def swagger_field(field, swagger_type="string", swagger_format=None):
+    setattr(field, SWAGGER_TYPE, swagger_type)
+    setattr(field, SWAGGER_FORMAT, swagger_format)
+    return field
+
+
 def build_parameter(field):
     """
     Build a parameter from a marshmallow field.
@@ -48,9 +58,9 @@ def build_parameter(field):
     try:
         field_type, field_format = FIELD_MAPPINGS[type(field)]
     except KeyError:
-        if hasattr(field, "__swagger_type__"):
-            field_type = getattr(field, "__swagger_type__")
-            field_format = getattr(field, "__swagger_format__", None)
+        if hasattr(field, SWAGGER_TYPE):
+            field_type = getattr(field, SWAGGER_TYPE)
+            field_format = getattr(field, SWAGGER_FORMAT, None)
         else:
             logger.exception("No mapped swagger type for marshmallow field: {}".format(
                 field,
