@@ -53,7 +53,7 @@ def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts
                 continue
             else:
                 break
-        if attempt == max_attempts - 1:
+        else:
             raise error
 
 
