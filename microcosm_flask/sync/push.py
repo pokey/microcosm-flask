@@ -6,7 +6,8 @@ from json import dumps
 from logging import getLogger
 from sys import stdout
 
-from requests import Session
+import requests
+from requests.exceptions import ConnectionError
 from six.moves.urllib.parse import urlparse, urlunparse
 from yaml import safe_dump_all
 
@@ -25,7 +26,7 @@ def push_yaml(inputs, destination):
     safe_dump_all(({href: resource} for href, resource in inputs), destination)
 
 
-def push_json(inputs, base_url, batch_size):
+def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts=2):
     """
     Write inputs to remote URL as JSON.
 
@@ -33,8 +34,31 @@ def push_json(inputs, base_url, batch_size):
     if our conventions support it.
 
     """
+    # either use a session or use plain requests
+    session_factory = requests.Session if enable_sessions else lambda: requests
+
+    session = session_factory()
+    for uri, resources in iter_json_batches(inputs, base_url, batch_size):
+        # retry on connection failures
+        for attempt in range(max_attempts):
+            try:
+                if batch_size == 1:
+                    push_resource_json(session, uri, resources[0])
+                else:
+                    push_resource_json_batch(session, uri, resources)
+            except ConnectionError as error:
+                logger.info("Connection error for uri: {}: {}".format(uri, error))
+                # on connection failure, recreate the session
+                session = session_factory()
+                continue
+            else:
+                break
+        else:
+            raise error
+
+
+def iter_json_batches(inputs, base_url, batch_size):
     parsed_base_url = urlparse(base_url)
-    session = Session()
 
     current_uri = None
     current_batch = []
@@ -53,23 +77,23 @@ def push_json(inputs, base_url, batch_size):
         ))
 
         if batch_size == 1:
-            push_resource_json(session, uri, resource)
-            continue
+            yield (uri, [resource])
+        else:
+            # batch handling
+            collection_uri = uri.rsplit("/", 1)[0]
 
-        # batch handling
-        collection_uri = uri.rsplit("/", 1)[0]
+            if any((
+                    current_uri is not None and current_uri != collection_uri,
+                    len(current_batch) >= batch_size,
+            )):
+                yield (current_uri, current_batch)
+                current_batch = []
 
-        if any((
-            current_uri is not None and current_uri != collection_uri,
-            len(current_batch) >= batch_size,
-        )):
-            push_resource_json_batch(session, current_uri, current_batch)
-            current_batch = []
+            current_uri = collection_uri
+            current_batch.append(resource)
 
-        current_uri = collection_uri
-        current_batch.append(resource)
-
-    push_resource_json_batch(session, current_uri, current_batch)
+    if current_batch:
+        yield (current_uri, current_batch)
 
 
 def push_resource_json(session, uri, resource):
@@ -102,9 +126,6 @@ def push_resource_json_batch(session, uri, resources):
     Assumes that the backend supports a replace/put convention.
 
     """
-    if not resources:
-        return
-
     logger.debug("Pushing resource batch of size {} for {}".format(len(resources), uri))
 
     response = session.patch(
@@ -137,7 +158,7 @@ def push(args, inputs):
     if args.output == "-":
         push_yaml(inputs, stdout)
     elif args.output.startswith("http"):
-        push_json(inputs, args.output, args.batch_size)
+        push_json(inputs, args.output, args.batch_size, args.enable_sessions)
     else:
         with open(args.output, "w") as file_:
             push_yaml(inputs, file_)
