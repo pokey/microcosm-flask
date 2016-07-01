@@ -24,6 +24,11 @@ from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_sche
 
 class RelationConvention(Convention):
 
+    def __init__(self, graph, paginated_list_class=PaginatedList):
+        super(RelationConvention, self).__init__(graph)
+
+        self.paginated_list_class = paginated_list_class
+
     def configure_createfor(self, ns, definition):
         """
         Register a create-for relation endpoint.
@@ -99,7 +104,7 @@ class RelationConvention(Convention):
             items, count, context = definition.func(**merge_data(path_data, request_data))
             # TODO: use the schema for encoding
             return jsonify(
-                PaginatedList(
+                self.paginated_list_class(
                     ns,
                     page,
                     items,
