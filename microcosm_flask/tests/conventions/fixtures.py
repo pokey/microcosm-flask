@@ -7,7 +7,15 @@ from uuid import uuid4
 from marshmallow import fields, Schema
 
 from microcosm_flask.linking import Links, Link
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
+
+
+class Address(object):
+    def __init__(self, id, person_id, address_line):
+        self.id = id
+        self.person_id = person_id
+        self.address_line = address_line
 
 
 class Person(object):
@@ -17,6 +25,10 @@ class Person(object):
         self.last_name = last_name
 
 
+class NewAddressSchema(Schema):
+    addressLine = fields.Str(attribute="address_line", required=True)
+
+
 class NewPersonSchema(Schema):
     firstName = fields.Str(attribute="first_name", required=True)
     lastName = fields.Str(attribute="last_name", required=True)
@@ -24,6 +36,26 @@ class NewPersonSchema(Schema):
 
 class NewPersonBatchSchema(Schema):
     items = fields.List(fields.Nested(NewPersonSchema))
+
+
+class AddressSchema(NewAddressSchema):
+    id = fields.UUID(required=True)
+    _links = fields.Method("get_links", dump_only=True)
+
+    def get_links(self, obj):
+        links = Links()
+        links["self"] = Link.for_(
+            Operation.Retrieve,
+            ns=Namespace(
+                subject=Address,
+                path=Namespace(
+                    subject=Person,
+                ).instance_path,
+            ),
+            person_id=obj.person_id,
+            address_id=obj.id,
+            )
+        return links.to_dict()
 
 
 class PersonSchema(NewPersonSchema):
@@ -40,9 +72,19 @@ class PersonBatchSchema(NewPersonSchema):
     items = fields.List(fields.Nested(PersonSchema))
 
 
+ADDRESS_ID_1 = uuid4()
 PERSON_ID_1 = uuid4()
 PERSON_ID_2 = uuid4()
 PERSON_1 = Person(PERSON_ID_1, "Alice", "Smith")
+ADDRESS_1 = Address(ADDRESS_ID_1, PERSON_ID_1, "21 Acme St., San Francisco CA 94110")
+
+
+def address_retrieve(id, person_id, address_id):
+    return ADDRESS_1
+
+
+def address_search(person_id, offset, limit):
+    return [ADDRESS_1], 1, dict(person_id=person_id)
 
 
 def person_create(**kwargs):

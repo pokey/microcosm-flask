@@ -44,10 +44,17 @@ class CRUDConvention(Convention):
         def search(**path_data):
             request_data = load_query_string_data(definition.request_schema)
             page = Page.from_query_string(request_data)
-            items, count = definition.func(**merge_data(path_data, request_data))
+            return_value = definition.func(**merge_data(path_data, request_data))
+
+            if len(return_value) == 3:
+                items, count, context = return_value
+            else:
+                context = {}
+                items, count = return_value
+
             # TODO: use the schema for encoding
             return jsonify(
-                PaginatedList(ns, page, items, count, definition.response_schema).to_dict()
+                PaginatedList(ns, page, items, count, definition.response_schema, **context).to_dict()
             )
 
         search.__doc__ = "Search the collection of all {}".format(pluralize(ns.subject_name))
