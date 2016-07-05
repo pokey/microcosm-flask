@@ -13,11 +13,16 @@ from hamcrest import (
 
 from microcosm.api import create_object_graph
 from microcosm_flask.conventions.crud import configure_crud
+from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
 from microcosm_flask.paging import PageSchema
 from microcosm_flask.tests.conventions.fixtures import (
+    Address,
+    AddressSchema,
     NewPersonBatchSchema,
     NewPersonSchema,
+    address_retrieve,
+    address_search,
     person_create,
     person_delete,
     person_replace,
@@ -28,6 +33,7 @@ from microcosm_flask.tests.conventions.fixtures import (
     Person,
     PersonBatchSchema,
     PersonSchema,
+    ADDRESS_ID_1,
     PERSON_ID_1,
     PERSON_ID_2,
 )
@@ -44,11 +50,20 @@ PERSON_MAPPINGS = {
 }
 
 
+ADDRESS_MAPPINGS = {
+    Operation.Retrieve: (address_retrieve, AddressSchema()),
+    Operation.Search: (address_search, PageSchema(), AddressSchema()),
+}
+
+
 class TestCrud(object):
 
     def setup(self):
         self.graph = create_object_graph(name="example", testing=True)
+        person_ns = Namespace(subject=Person)
+        address_ns = Namespace(subject=Address, path=person_ns.instance_path)
         configure_crud(self.graph, Person, PERSON_MAPPINGS)
+        configure_crud(self.graph, address_ns, ADDRESS_MAPPINGS)
         self.client = self.graph.flask.test_client()
 
     def assert_response(self, response, status_code, data=None):
@@ -85,6 +100,29 @@ class TestCrud(object):
             "_links": {
                 "self": {
                     "href": "http://localhost/api/person?offset=0&limit=20",
+                }
+            }
+        })
+
+    def test_search_with_context(self):
+        uri = "/api/person/{}/address".format(PERSON_ID_1)
+        response = self.client.get(uri)
+        self.assert_response(response, 200, {
+            "count": 1,
+            "offset": 0,
+            "limit": 20,
+            "items": [{
+                "id": str(ADDRESS_ID_1),
+                "addressLine": "21 Acme St., San Francisco CA 94110",
+                "_links": {
+                    "self": {
+                        "href": "http://localhost/api/person/{}/address/{}".format(PERSON_ID_1, ADDRESS_ID_1),
+                    }
+                },
+            }],
+            "_links": {
+                "self": {
+                    "href": "http://localhost/api/person/{}/address?offset=0&limit=20".format(PERSON_ID_1),
                 }
             }
         })
