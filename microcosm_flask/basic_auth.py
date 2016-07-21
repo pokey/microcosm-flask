@@ -64,9 +64,11 @@ class ConfigBasicAuth(BasicAuth):
 
 
 @defaults(
-    credentials={
-        "default": "secret",
-    }
+    credentials=dict(
+        # set a default configuration but don't merge it if other config is set
+        __merge__=False,
+        default="secret",
+    ),
 )
 def configure_basic_auth_decorator(graph):
     """
