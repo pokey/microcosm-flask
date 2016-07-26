@@ -15,9 +15,8 @@ OperationInfo = namedtuple("OperationInfo", ["name", "method", "pattern", "defau
 
 
 # NB: Namespace.parse_endpoint requires that operation is the second argument
-NODE_PATTERN = "{subject}.{operation}"
-EDGE_PATTERN = "{subject}.{operation}.{object_}"
-VERSIONED_NODE_PATTERN = "{subject}.{operation}.{version}"
+NODE_PATTERN = "{subject}.{operation}.{version}"
+EDGE_PATTERN = "{subject}.{operation}.{object_}.{version}"
 
 
 @unique
@@ -29,7 +28,6 @@ class Operation(Enum):
     """
     # discovery operation
     Discover = OperationInfo("discover", "GET", NODE_PATTERN, 200)
-    DiscoverVersion = OperationInfo("discover_version", "GET", VERSIONED_NODE_PATTERN, 200)
 
     # collection operations
     Search = OperationInfo("search", "GET", NODE_PATTERN, 200)
