@@ -26,14 +26,14 @@ def test_endpoint_pattern():
 
     """
     assert_that(
-        Operation.DiscoverVersion.endpoint_pattern,
+        Operation.Discover.endpoint_pattern,
         is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)[.](?P<version>[^.]*)")),
     )
     assert_that(
         Operation.Search.endpoint_pattern,
-        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)")),
+        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)[.](?P<version>[^.]*)")),
     )
     assert_that(
         Operation.SearchFor.endpoint_pattern,
-        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)[.](?P<object_>[^.]*)")),
+        is_(equal_to("(?P<subject>[^.]*)[.](?P<operation>[^.]*)[.](?P<object_>[^.]*)[.](?P<version>[^.]*)")),
     )

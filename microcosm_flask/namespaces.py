@@ -102,7 +102,7 @@ class Namespace(object):
             subject=self.subject_name,
             operation=operation.value.name,
             object_=self.object_name if self.object_ else None,
-            version=self.version,
+            version=self.version or "v1",
         )
 
     @staticmethod
