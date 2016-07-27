@@ -51,6 +51,32 @@ class RelationConvention(Convention):
 
         create.__doc__ = "Create a new {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
 
+    def configure_replacefor(self, ns, definition):
+        """
+        Register a replace-for relation endpoint.
+
+        The definition's func should be a replace function, which must:
+        - accept kwargs for the new instance replacement parameters
+        - return the instance
+
+        :param ns: the namespace
+        :param definition: the endpoint definition
+
+        """
+        @self.graph.route(ns.relation_path, Operation.ReplaceFor, ns)
+        @request(definition.request_schema)
+        @response(definition.response_schema)
+        def replace(**path_data):
+            request_data = load_request_data(definition.request_schema)
+            response_data = definition.func(**merge_data(path_data, request_data))
+            return dump_response_data(
+                definition.response_schema,
+                response_data,
+                Operation.ReplaceFor.value.default_code
+            )
+
+        replace.__doc__ = "Replace an existing {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
+
     def configure_retrievefor(self, ns, definition):
         """
         Register a relation endpoint.
