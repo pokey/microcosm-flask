@@ -42,6 +42,7 @@ class Operation(Enum):
 
     # relation operations
     CreateFor = OperationInfo("create_for", "POST", EDGE_PATTERN, 201)
+    ReplaceFor = OperationInfo("replace_for", "PUT", EDGE_PATTERN, 200)
     RetrieveFor = OperationInfo("retrieve_for", "GET", EDGE_PATTERN, 200)
     SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN, 200)
 

@@ -59,6 +59,7 @@ class SwaggerConvention(Convention):
         "create_for",
         "delete",
         "replace",
+        "replace_for",
         "retrieve",
         "retrieve_for",
         "search",
