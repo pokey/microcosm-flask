@@ -31,7 +31,7 @@ class ErrorSchema(Schema):
 def as_retryable(error):
     """
     Given an exception, mark it as retryable when serializing
-    into transporty layer error response.
+    into HTTP error response.
 
     """
     error.retryable = True
