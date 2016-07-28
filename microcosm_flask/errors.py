@@ -28,6 +28,17 @@ class ErrorSchema(Schema):
     context = fields.Nested(ErrorContextSchema, required=False)
 
 
+def as_retryable(error):
+    """
+    Given an exception, mark it as retryable when serializing
+    into transporty layer error response.
+
+    """
+    error.retryable = True
+
+    return error
+
+
 def extract_status_code(error):
     """
     Extract an error code from a message.
