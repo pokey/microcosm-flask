@@ -7,7 +7,7 @@ from logging import getLogger
 from sys import stdout
 
 import requests
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, HTTPError
 from six.moves.urllib.parse import urlparse, urlunparse
 from yaml import safe_dump_all
 
@@ -51,6 +51,13 @@ def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts
                 # on connection failure, recreate the session
                 session = session_factory()
                 continue
+            except HTTPError as error:
+                if error.response.status_code in (504, 502):
+                    logger.info("Connection error for uri: {}: {}".format(uri, error))
+                    # on connection failure, recreate the session
+                    session = session_factory()
+                    continue
+                raise
             else:
                 break
         else:
