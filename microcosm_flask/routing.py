@@ -60,8 +60,8 @@ def configure_route_decorator(graph):
             ]):
                 func = context_logger(
                     graph.context,
-                    ns.controller,
                     func,
+                    parent=ns.controller,
                 )
 
             # keep audit decoration last (before registering the route) so that
