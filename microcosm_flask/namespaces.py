@@ -32,7 +32,7 @@ class Namespace(object):
 
     """
 
-    def __init__(self, subject, object_=None, path=None, version=None, enable_basic_auth=False):
+    def __init__(self, subject, object_=None, path=None, version=None, enable_basic_auth=None):
         """
         :param subject: the target resource (or resource name) of this namespace
         :param object_: the subject resource (or resource name) of this namespace (e.g. for relations)
