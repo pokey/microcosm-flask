@@ -49,7 +49,7 @@ def configure_route_decorator(graph):
             if graph.config.route.enable_cors:
                 func = cross_origin(supports_credentials=True)(func)
 
-            if graph.config.route.enable_basic_auth:
+            if graph.config.route.enable_basic_auth or ns.enable_basic_auth:
                 func = graph.basic_auth.required(func)
 
             # keep audit decoration last (before registering the route) so that
