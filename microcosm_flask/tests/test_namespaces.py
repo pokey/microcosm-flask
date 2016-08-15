@@ -105,7 +105,7 @@ def test_operation_href_for():
 
 def test_namespace_accepts_controller():
     """
-    Operations can resolve themselves as fully expanded hrefs.
+    Namespaces may optionally contain a controller.
 
     """
     graph = create_object_graph(name="example", testing=True)
