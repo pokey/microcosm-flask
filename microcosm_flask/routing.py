@@ -7,6 +7,7 @@ Intercepts Flask's normal route registration to inject conventions.
 from flask_cors import cross_origin
 
 from microcosm.api import defaults
+from microcosm_logging.decorators import context_logger
 
 
 def make_path(graph, path):
@@ -20,6 +21,7 @@ def make_path(graph, path):
     enable_audit=True,
     enable_basic_auth=False,
     enable_cors=True,
+    log_with_context=True,
     path_prefix="/api",
 )
 def configure_route_decorator(graph):
@@ -51,6 +53,16 @@ def configure_route_decorator(graph):
 
             if graph.config.route.enable_basic_auth:
                 func = graph.basic_auth.required(func)
+
+            if all([
+                graph.config.route.log_with_context,
+                ns.controller is not None,
+            ]):
+                func = context_logger(
+                    graph.context,
+                    ns.controller,
+                    func,
+                )
 
             # keep audit decoration last (before registering the route) so that
             # errors raised by other decorators are captured in the audit trail

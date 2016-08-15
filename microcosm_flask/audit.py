@@ -17,23 +17,10 @@ from microcosm_flask.errors import (
 )
 
 
-X_REQUEST = "X-Request"
-
 AuditOptions = namedtuple("AuditOptions", [
     "include_request_body",
     "include_response_body",
-    "include_header",
 ])
-
-
-def include_header_matching_prefix(prefix):
-    """
-    Match all headers starting with prefix.
-
-    """
-    def include_header(header):
-        return header.startswith(prefix)
-    return include_header
 
 
 def audit(func):
@@ -48,14 +35,13 @@ def audit(func):
         options = AuditOptions(
             include_request_body=True,
             include_response_body=True,
-            include_header=include_header_matching_prefix(X_REQUEST),
         )
-        return _audit_request(options, func, *args, **kwargs)
+        return _audit_request(options, func, None, *args, **kwargs)
 
     return wrapper
 
 
-def _audit_request(options, func, *args, **kwargs):
+def _audit_request(options, func, request_context, *args, **kwargs):
     """
     Run a request function under audit.
 
@@ -81,11 +67,8 @@ def _audit_request(options, func, *args, **kwargs):
         audit_dict["request_body"] = request.get_json(force=True)
 
     # include headers (conditionally)
-    audit_dict.update({
-        header: value
-        for header, value in request.headers.items()
-        if options.include_header(header)
-    })
+    if request_context is not None:
+        audit_dict.update(request_context())
 
     # process the request
     try:
@@ -149,7 +132,6 @@ def parse_response(response):
 @defaults(
     include_request_body=True,
     include_response_body=True,
-    include_header_prefix=X_REQUEST,
 )
 def configure_audit_decorator(graph):
     """
@@ -163,7 +145,6 @@ def configure_audit_decorator(graph):
     """
     include_request_body = graph.config.audit.include_request_body
     include_response_body = graph.config.audit.include_response_body
-    include_header_prefix = graph.config.audit.include_header_prefix
 
     def _audit(func):
         @wraps(func)
@@ -171,9 +152,8 @@ def configure_audit_decorator(graph):
             options = AuditOptions(
                 include_request_body=include_request_body,
                 include_response_body=include_response_body,
-                include_header=include_header_matching_prefix(include_header_prefix),
             )
-            return _audit_request(options, func, *args, **kwargs)
+            return _audit_request(options, func, graph.context,  *args, **kwargs)
 
         return wrapper
     return _audit
