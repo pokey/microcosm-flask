@@ -153,7 +153,7 @@ def configure_audit_decorator(graph):
                 include_request_body=include_request_body,
                 include_response_body=include_response_body,
             )
-            return _audit_request(options, func, graph.context,  *args, **kwargs)
+            return _audit_request(options, func, graph.request_context,  *args, **kwargs)
 
         return wrapper
     return _audit

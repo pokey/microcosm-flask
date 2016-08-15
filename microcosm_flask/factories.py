@@ -38,7 +38,7 @@ def configure_flask_app(graph):
     """
     graph.use(
         "audit",
-        "context",
+        "request_context",
         "basic_auth",
         "error_handlers",
         "logger",

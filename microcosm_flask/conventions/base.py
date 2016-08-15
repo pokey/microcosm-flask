@@ -10,13 +10,13 @@ class EndpointDefinition(tuple):
     A definition for an endpoint.
 
     """
-    def __new__(cls, func=None, request_schema=None, response_schema=None, controller=None):
+    def __new__(cls, func=None, request_schema=None, response_schema=None):
         """
         :param func: a function to process request data and return response data
         :param request_schema: a marshmallow schema to decode/validate request data
         :param response_schema: a marshmallow schema to encode response data
         """
-        return tuple.__new__(EndpointDefinition, (func, request_schema, response_schema, controller))
+        return tuple.__new__(EndpointDefinition, (func, request_schema, response_schema))
 
     @property
     def func(self):
@@ -29,10 +29,6 @@ class EndpointDefinition(tuple):
     @property
     def response_schema(self):
         return self[2]
-
-    @property
-    def controller(self):
-        return self[3]
 
 
 class Convention(object):

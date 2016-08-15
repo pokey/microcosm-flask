@@ -59,7 +59,7 @@ def configure_route_decorator(graph):
                 ns.controller is not None,
             ]):
                 func = context_logger(
-                    graph.context,
+                    graph.request_context,
                     func,
                     parent=ns.controller,
                 )

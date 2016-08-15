@@ -19,14 +19,14 @@ def context_wrapper(include_header_prefix):
 @defaults(
     include_header_prefix=X_REQUEST,
 )
-def configure_context(graph):
+def configure_request_context(graph):
     """
     Configure the flask context function which controls what data you want to associate
     with your flask request context, e.g. headers, request body/response.
 
     Usage:
-        graph.context()
+        graph.request_context()
     """
 
-    include_header_prefix = graph.config.context.include_header_prefix
+    include_header_prefix = graph.config.request_context.include_header_prefix
     return context_wrapper(include_header_prefix)
