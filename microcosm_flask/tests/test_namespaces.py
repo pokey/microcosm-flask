@@ -8,6 +8,7 @@ from hamcrest import (
     is_,
     none,
 )
+from mock import Mock
 
 from microcosm.api import create_object_graph
 from microcosm_flask.namespaces import Namespace
@@ -100,3 +101,24 @@ def test_operation_href_for():
     with graph.app.test_request_context():
         url = ns.href_for(Operation.Search)
         assert_that(url, is_(equal_to("http://localhost/api/foo")))
+
+
+def test_namespace_accepts_controller():
+    """
+    Namespaces may optionally contain a controller.
+
+    """
+    graph = create_object_graph(name="example", testing=True)
+    controller = Mock()
+    ns = Namespace(subject="foo", controller=controller)
+
+    @graph.route(ns.collection_path, Operation.Search, ns)
+    def search_foo():
+        pass
+
+    with graph.app.test_request_context():
+        url = ns.href_for(Operation.Search)
+        assert_that(url, is_(equal_to("http://localhost/api/foo")))
+        url = ns.url_for(Operation.Search)
+        assert_that(url, is_(equal_to("/api/foo")))
+        assert_that(ns.controller, is_(equal_to(controller)))

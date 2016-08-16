@@ -32,17 +32,27 @@ class Namespace(object):
 
     """
 
-    def __init__(self, subject, object_=None, path=None, version=None, enable_basic_auth=False):
+    def __init__(
+        self,
+        subject,
+        object_=None,
+        path=None,
+        controller=None,
+        version=None,
+        enable_basic_auth=False
+    ):
         """
         :param subject: the target resource (or resource name) of this namespace
         :param object_: the subject resource (or resource name) of this namespace (e.g. for relations)
         :param path: the path prefix for this namespace
+        :param controller: the object responsible for implementations associated with this namespace.
         :param version: the version of this namespace
         :param enable_basic_auth: enable basic auth for this namespace if it's not enabled globally
         """
         self.subject = subject
         self.object_ = object_
         self.prefix = path or ""
+        self.controller = controller
         self.version = version
         self.enable_basic_auth = enable_basic_auth
 
