@@ -3,6 +3,7 @@ Support for registering function metadata.
 
 """
 from microcosm_flask.namespaces import Namespace
+from werkzeug.exceptions import InternalServerError
 
 
 REQUEST = "__request__"
@@ -25,7 +26,7 @@ def iter_endpoints(graph, match_func):
     for rule in graph.flask.url_map.iter_rules():
         try:
             operation, ns = Namespace.parse_endpoint(rule.endpoint)
-        except (IndexError, ValueError):
+        except (IndexError, ValueError, InternalServerError):
             # operation follows a different convention (e.g. "static")
             continue
         else:
