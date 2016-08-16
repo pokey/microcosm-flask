@@ -20,6 +20,28 @@ Opinionated Flask services.
     - API discovery endpoints allow resource data to be discovered/spidered
     - Swagger endpoints allow endpoint integration to be automated
 
+## Setup
+
+Create a virtualenv
+
+```
+mkvirtualenv microcosm-flask
+```
+
+Install dependencies
+
+```
+pip install -U -e .
+```
+
+## Tests
+
+Run the tests
+
+```
+python setup.py nosetests
+```
+
 
 ## Configuration
 
