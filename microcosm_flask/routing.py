@@ -41,9 +41,6 @@ def configure_route_decorator(graph):
     """
     # routes depends on converters
     graph.use(*graph.config.route.converters)
-    # routes are annotated to make request context availale in
-    # graph.opaque
-    graph.use('opaque')
 
     def route(path, operation, ns):
         """
