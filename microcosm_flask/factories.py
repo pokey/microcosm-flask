@@ -5,6 +5,7 @@ Factories to configure Flask.
 from flask import Flask
 
 from microcosm.api import defaults
+import microcosm.opaque  # noqa
 
 
 @defaults(
@@ -42,5 +43,6 @@ def configure_flask_app(graph):
         "basic_auth",
         "error_handlers",
         "logger",
+        "opaque",
     )
     return graph.flask

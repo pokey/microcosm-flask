@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-flask"
-version = "0.36.0"
+version = "0.37.0"
 
 setup(
     name=project,
@@ -22,7 +22,7 @@ setup(
         "flask-cors>=2.1.2",
         "Flask-UUID>=0.2",
         "marshmallow>=2.6.0",
-        "microcosm>=0.11.0",
+        "microcosm>=0.12.0",
         "microcosm-logging>=0.9.1",
         "openapi>=0.5.0",
         "python-dateutil>=2.5.2",
