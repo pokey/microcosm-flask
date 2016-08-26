@@ -5,6 +5,7 @@ Factories to configure Flask.
 from flask import Flask
 
 from microcosm.api import defaults
+import microcosm.opaque  # noqa
 
 
 @defaults(

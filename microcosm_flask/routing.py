@@ -8,7 +8,6 @@ from flask_cors import cross_origin
 
 from microcosm.api import defaults
 from microcosm_logging.decorators import context_logger
-import microcosm.opaque  # noqa
 
 
 def make_path(graph, path):
