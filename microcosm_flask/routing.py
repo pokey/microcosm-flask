@@ -8,6 +8,7 @@ from flask_cors import cross_origin
 
 from microcosm.api import defaults
 from microcosm_logging.decorators import context_logger
+import microcosm.opaque  # noqa
 
 
 def make_path(graph, path):
@@ -40,6 +41,9 @@ def configure_route_decorator(graph):
     """
     # routes depends on converters
     graph.use(*graph.config.route.converters)
+    # routes are annotated to make request context availale in
+    # graph.opaque
+    graph.use('opaque')
 
     def route(path, operation, ns):
         """
