@@ -64,6 +64,9 @@ def configure_route_decorator(graph):
                     parent=ns.controller,
                 )
 
+            # set the opaque component data_func to look at the flask request context
+            func = graph.opaque.bind(graph.request_context)(func)
+
             # keep audit decoration last (before registering the route) so that
             # errors raised by other decorators are captured in the audit trail
             if graph.config.route.enable_audit:
