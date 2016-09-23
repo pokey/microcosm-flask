@@ -17,6 +17,7 @@ Note that:
 
 """
 from logging import getLogger
+from six import string_types
 from werkzeug.routing import BuildError
 
 from openapi import model as swagger
@@ -91,6 +92,8 @@ def add_definitions(definitions, operations):
 
     """
     for definition_schema in iter_definitions(definitions, operations):
+        if isinstance(definition_schema, string_types):
+            continue
         for name, schema in iter_schemas(definition_schema):
             definitions.setdefault(name, swagger.Schema(schema))
 
@@ -234,11 +237,24 @@ def add_responses(swagger_operation, operation, ns, func):
     else:
         description = "{} {}".format(operation.value.name, ns.subject_name)
 
+    # resource request
+    request_resource = get_request_schema(func)
+    if isinstance(request_resource, string_types):
+        if not hasattr(swagger_operation, "consumes"):
+            swagger_operation.consumes = []
+        swagger_operation.consumes.append(request_resource)
+
     # resources response
-    swagger_operation.responses[str(operation.value.default_code)] = build_response(
-        description=description,
-        resource=get_response_schema(func),
-    )
+    response_resource = get_response_schema(func)
+    if isinstance(response_resource, string_types):
+        if not hasattr(swagger_operation, "produces"):
+            swagger_operation.produces = []
+        swagger_operation.produces.append(response_resource)
+    else:
+        swagger_operation.responses[str(operation.value.default_code)] = build_response(
+            description=description,
+            resource=response_resource,
+        )
 
 
 def build_response(description, resource=None):

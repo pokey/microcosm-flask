@@ -144,7 +144,11 @@ def iter_schemas(marshmallow_schema):
             nested_schema = build_schema(field.schema)
             nested_schema_name = type_name(name_for(field.schema))
             yield nested_schema_name, nested_schema
+            for subname, subfield in iter_schemas(field.schema):
+                yield subname, subfield
         if isinstance(field, fields.List) and isinstance(field.container, fields.Nested):
             nested_schema = build_schema(field.container.schema)
             nested_schema_name = type_name(name_for(field.container.schema))
             yield nested_schema_name, nested_schema
+            for subname, subfield in iter_schemas(field.container.schema):
+                yield subname, subfield
