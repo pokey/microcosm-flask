@@ -99,18 +99,20 @@ def build_schema(marshmallow_schema):
 
     """
     fields = list(iter_fields(marshmallow_schema))
+    required_fields = [
+        field.dump_to or name
+        for name, field in fields
+        if field.required and not field.allow_none
+    ]
     schema = {
         "type": "object",
         "properties": {
             field.dump_to or name: build_parameter(field)
             for name, field in fields
-        },
-        "required": [
-            field.dump_to or name
-            for name, field in fields
-            if field.required and not field.allow_none
-        ]
+        }
     }
+    if required_fields:
+        schema["required"] = required_fields
     return schema
 
 

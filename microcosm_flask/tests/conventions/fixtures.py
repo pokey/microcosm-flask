@@ -38,6 +38,11 @@ class NewPersonBatchSchema(Schema):
     items = fields.List(fields.Nested(NewPersonSchema))
 
 
+class UpdatePersonSchema(Schema):
+    firstName = fields.Str(attribute="first_name")
+    lastName = fields.Str(attribute="last_name")
+
+
 class AddressSchema(NewAddressSchema):
     id = fields.UUID(required=True)
     _links = fields.Method("get_links", dump_only=True)
