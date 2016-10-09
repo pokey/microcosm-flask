@@ -17,13 +17,16 @@ from microcosm_flask.swagger.definitions import build_swagger
 from microcosm_flask.tests.conventions.fixtures import (
     NewPersonSchema,
     person_create,
+    person_update,
     Person,
     PersonSchema,
+    UpdatePersonSchema,
 )
 
 
 PERSON_MAPPINGS = {
     Operation.Create: (person_create, NewPersonSchema(), PersonSchema()),
+    Operation.Update: (person_update, UpdatePersonSchema(), PersonSchema()),
 }
 
 
@@ -83,6 +86,47 @@ def test_build_swagger():
                     "operationId": "create",
                 },
             },
+            "/person/{person_id}": {
+                "patch": {
+                    "tags": ["person"],
+                    "responses": {
+                        "default": {
+                            "description": "An error occcurred",
+                            "schema": {
+                                "$ref": "#/definitions/Error",
+                            },
+                        },
+                        "200": {
+                            "description": "Update some or all of a person by id",
+                            "schema": {
+                                "$ref": "#/definitions/Person",
+                            },
+                        },
+                    },
+                    "parameters": [
+                        {
+                            "required": False,
+                            "type": "string",
+                            "name": "X-Response-Skip-Null",
+                            "in": "header",
+                        },
+                        {
+                            "required": True,
+                            "type": "string",
+                            "name": "person_id",
+                            "in": "path",
+                        },
+                        {
+                            "in": "body",
+                            "name": "body",
+                            "schema": {
+                                "$ref": "#/definitions/UpdatePerson",
+                            },
+                        },
+                    ],
+                    "operationId": "update",
+                },
+            },
         },
         "produces": [
             "application/json",
@@ -125,6 +169,17 @@ def test_build_swagger():
                         "type": "string",
                     },
                 },
+            },
+            "UpdatePerson": {
+                "type": "object",
+                "properties": {
+                    "lastName": {
+                        "type": "string",
+                    },
+                    "firstName": {
+                        "type": "string",
+                    }
+                }
             },
             "ErrorContext": {
                 "required": ["errors"],
