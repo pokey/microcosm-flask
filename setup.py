@@ -47,6 +47,7 @@ setup(
             "error_handlers = microcosm_flask.errors:configure_error_handlers",
             "flask = microcosm_flask.factories:configure_flask",
             "health_convention = microcosm_flask.conventions.health:configure_health",
+            "port_forwarding = microcosm_flask.forwarding:configure_port_forwarding",
             "route = microcosm_flask.routing:configure_route_decorator",
             "swagger_convention = microcosm_flask.conventions.swagger:configure_swagger",
             "uuid = microcosm_flask.converters:configure_uuid",
