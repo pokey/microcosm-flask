@@ -9,6 +9,7 @@ from hamcrest import (
     is_,
 )
 from microcosm.api import create_object_graph
+from six import b
 
 
 def test_forwarding():
@@ -31,4 +32,4 @@ def test_forwarding():
     )
 
     assert_that(response.status_code, is_(equal_to(200)))
-    assert_that(response.data, is_(equal_to("http://localhost:8080/")))
+    assert_that(response.data, is_(equal_to(b("http://localhost:8080/"))))
