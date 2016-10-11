@@ -1,5 +1,5 @@
 """
-Middleware tests.
+Forwarding tests.
 
 """
 from flask import url_for
