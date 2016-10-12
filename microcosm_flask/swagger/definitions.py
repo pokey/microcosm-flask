@@ -119,13 +119,13 @@ def build_path(operation, ns):
 
     """
     try:
-        return ns.url_for(operation)
+        return ns.url_for(operation, _external=False)
     except BuildError as error:
         uri_templates = {
             argument: "{{{}}}".format(argument)
             for argument in error.suggested.arguments
         }
-        return ns.url_for(operation, **uri_templates)
+        return ns.url_for(operation, _external=False, **uri_templates)
 
 
 def body_param(schema):
