@@ -7,6 +7,7 @@ from inflection import pluralize
 
 from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.encoding import (
+    clean_response_data,
     dump_response_data,
     load_query_string_data,
     load_request_data,
@@ -53,9 +54,9 @@ class CRUDConvention(Convention):
                 items, count = return_value
 
             # TODO: use the schema for encoding
-            return jsonify(
+            return jsonify(clean_response_data(
                 PaginatedList(ns, page, items, count, definition.response_schema, **context).to_dict()
-            )
+            ))
 
         search.__doc__ = "Search the collection of all {}".format(pluralize(ns.subject_name))
 
