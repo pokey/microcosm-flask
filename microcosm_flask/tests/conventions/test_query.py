@@ -73,7 +73,7 @@ class TestQuery(object):
 
         """
         with self.graph.flask.test_request_context():
-            assert_that(self.ns.url_for(Operation.Query), is_(equal_to("/api/v1/foo/get")))
+            assert_that(self.ns.url_for(Operation.Query), is_(equal_to("http://localhost/api/v1/foo/get")))
 
     def test_query(self):
         """

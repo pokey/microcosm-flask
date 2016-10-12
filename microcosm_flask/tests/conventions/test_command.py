@@ -74,7 +74,7 @@ class TestCommand(object):
 
         """
         with self.graph.flask.test_request_context():
-            assert_that(self.ns.url_for(Operation.Command), is_(equal_to("/api/v1/foo/do")))
+            assert_that(self.ns.url_for(Operation.Command), is_(equal_to("http://localhost/api/v1/foo/do")))
 
     def test_command(self):
         """
