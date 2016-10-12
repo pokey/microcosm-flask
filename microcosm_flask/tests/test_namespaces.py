@@ -83,6 +83,23 @@ def test_operation_url_for():
 
     with graph.app.test_request_context():
         url = ns.url_for(Operation.Search)
+        assert_that(url, is_(equal_to("http://localhost/api/foo")))
+
+
+def test_operation_url_for_internal():
+    """
+    Operations can resolve themselves via Flask's `url_for` and get internal URIs.
+
+    """
+    graph = create_object_graph(name="example", testing=True)
+    ns = Namespace(subject="foo")
+
+    @graph.route(ns.collection_path, Operation.Search, ns)
+    def search_foo():
+        pass
+
+    with graph.app.test_request_context():
+        url = ns.url_for(Operation.Search, _external=False)
         assert_that(url, is_(equal_to("/api/foo")))
 
 
@@ -120,5 +137,5 @@ def test_namespace_accepts_controller():
         url = ns.href_for(Operation.Search)
         assert_that(url, is_(equal_to("http://localhost/api/foo")))
         url = ns.url_for(Operation.Search)
-        assert_that(url, is_(equal_to("/api/foo")))
+        assert_that(url, is_(equal_to("http://localhost/api/foo")))
         assert_that(ns.controller, is_(equal_to(controller)))

@@ -135,14 +135,14 @@ class Namespace(object):
         del kwargs["operation"]
         return operation, Namespace(**kwargs)
 
-    def url_for(self, operation, **kwargs):
+    def url_for(self, operation, _external=True, **kwargs):
         """
         Construct a URL for an operation against a resource.
 
         :param kwargs: additional arguments for URL path expansion
 
         """
-        return url_for(self.endpoint_for(operation), **kwargs)
+        return url_for(self.endpoint_for(operation), _external=_external, **kwargs)
 
     def href_for(self, operation, qs=None, **kwargs):
         """
