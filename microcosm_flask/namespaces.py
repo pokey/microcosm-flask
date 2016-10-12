@@ -139,8 +139,9 @@ class Namespace(object):
         """
         Construct a URL for an operation against a resource.
 
-        :param kwargs: additional arguments for URL path expansion
-
+        :param kwargs: additional arguments for URL path expansion,
+            which are passed to flask.url_for.
+            In particular, _external=True produces absolute url.
         """
         return url_for(self.endpoint_for(operation), _external=_external, **kwargs)
 
