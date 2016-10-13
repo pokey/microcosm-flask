@@ -15,6 +15,7 @@ from microcosm_flask.errors import (
     extract_error_message,
     extract_status_code,
 )
+from microcosm_logging.timing import elapsed_time
 
 
 AuditOptions = namedtuple("AuditOptions", [
@@ -72,7 +73,8 @@ def _audit_request(options, func, request_context, *args, **kwargs):
 
     # process the request
     try:
-        response = func(*args, **kwargs)
+        with elapsed_time(audit_dict):
+            response = func(*args, **kwargs)
     except Exception as error:
         status_code = extract_status_code(error)
         success = 0 < status_code < 400
