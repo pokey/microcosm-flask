@@ -5,10 +5,9 @@ Reports service health and basic information from the "/api/health" endpoint,
 using HTTP 200/503 status codes to indicate healthiness.
 
 """
-from flask import jsonify
-
 from microcosm.api import defaults
 from microcosm_flask.conventions.base import Convention
+from microcosm_flask.conventions.encoding import make_response
 from microcosm_flask.errors import extract_error_message
 from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
@@ -89,10 +88,9 @@ class HealthConvention(Convention):
     def configure_retrieve(self, ns, definition):
         @self.graph.route(ns.singleton_path, Operation.Retrieve, ns)
         def current_health():
-            dct = self.health.to_dict()
-            response = jsonify(dct)
-            response.status_code = 200 if dct["ok"] else 503
-            return response
+            response_data = self.health.to_dict()
+            status_code = 200 if response_data["ok"] else 503
+            return make_response(response_data, status_code=status_code)
 
 
 @defaults(

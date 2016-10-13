@@ -5,7 +5,6 @@ For relations, endpoint definitions require that the `Namespace` contain *both*
 a subject and an object.
 
 """
-from flask import jsonify
 from inflection import pluralize
 from marshmallow import Schema
 
@@ -14,6 +13,7 @@ from microcosm_flask.conventions.encoding import (
     dump_response_data,
     load_query_string_data,
     load_request_data,
+    make_response,
     merge_data,
 )
 from microcosm_flask.conventions.registry import qs, request, response
@@ -128,18 +128,18 @@ class RelationConvention(Convention):
             request_data = load_query_string_data(definition.request_schema)
             page = Page.from_query_string(request_data)
             items, count, context = definition.func(**merge_data(path_data, request_data))
+
             # TODO: use the schema for encoding
-            return jsonify(
-                self.paginated_list_class(
-                    ns,
-                    page,
-                    items,
-                    count,
-                    definition.response_schema,
-                    Operation.SearchFor,
-                    **context
-                ).to_dict()
-            )
+            response_data = self.paginated_list_class(
+                ns,
+                page,
+                items,
+                count,
+                definition.response_schema,
+                Operation.SearchFor,
+                **context
+            ).to_dict()
+            return make_response(response_data)
 
         search.__doc__ = "Search for {} relative to a {}".format(pluralize(ns.object_name), ns.subject_name)
 

@@ -2,11 +2,9 @@
 A discovery endpoint provides links to other endpoints.
 
 """
-from flask import jsonify
-
 from microcosm.api import defaults
 from microcosm_flask.conventions.base import Convention
-from microcosm_flask.conventions.encoding import load_query_string_data
+from microcosm_flask.conventions.encoding import load_query_string_data, make_response
 from microcosm_flask.conventions.registry import iter_endpoints
 from microcosm_flask.linking import Link, Links
 from microcosm_flask.namespaces import Namespace
@@ -62,7 +60,7 @@ class DiscoveryConvention(Convention):
             page = Page.from_query_string(load_query_string_data(page_schema))
             page.offset = 0
 
-            return jsonify(
+            response_data = dict(
                 _links=Links({
                     "self": Link.for_(Operation.Discover, ns, qs=page.to_tuples()),
                     "search": [
@@ -70,6 +68,7 @@ class DiscoveryConvention(Convention):
                     ],
                 }).to_dict()
             )
+            return make_response(response_data)
 
 
 @defaults(
