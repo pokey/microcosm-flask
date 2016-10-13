@@ -4,10 +4,11 @@ Swagger (OpenAPI) convention.
 Exposes swagger definitions for matching operations.
 
 """
-from flask import jsonify, g
+from flask import g
 
 from microcosm.api import defaults
 from microcosm_flask.conventions.base import Convention
+from microcosm_flask.conventions.encoding import make_response
 from microcosm_flask.conventions.registry import iter_endpoints
 from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
@@ -49,7 +50,7 @@ class SwaggerConvention(Convention):
         def discover():
             swagger = build_swagger(self.graph, ns, self.find_matching_endpoints(ns))
             g.hide_body = True
-            return jsonify(swagger)
+            return make_response(swagger)
 
 
 @defaults(
