@@ -104,6 +104,7 @@ def build_schema(marshmallow_schema):
         for name, field in fields
         if field.required and not field.allow_none
     ]
+    # TODO: handle fields using `only` flag
     schema = {
         "type": "object",
         "properties": {

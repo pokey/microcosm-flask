@@ -21,6 +21,10 @@ class Choices(Enum):
     Profit = "profit"
 
 
+class NewPersonNameSchema(Schema):
+    firstName = fields.Str(attribute="first_name", required=True)
+
+
 class TestSchema(Schema):
     id = fields.UUID()
     foo = fields.String(description="Foo", default="bar")
@@ -28,6 +32,7 @@ class TestSchema(Schema):
     names = fields.List(fields.String)
     payload = fields.Dict()
     ref = fields.Nested(NewPersonSchema)
+    singleFieldRef = fields.Nested(NewPersonNameSchema, attribute="name", only="first_name")
 
 
 def test_schema_generation():
@@ -97,4 +102,12 @@ def test_field_nested():
     parameter = build_parameter(TestSchema().fields["ref"])
     assert_that(parameter, is_(equal_to({
         "$ref": "#/definitions/NewPerson",
+    })))
+
+
+def test_field_nested_with_only():
+    # TODO(srt32): how to test...
+    parameter = build_parameter(TestSchema().fields["singleFieldRef"])
+    assert_that(parameter, is_(equal_to({
+        "$ref": "#/definitions/NewPersonName",
     })))
