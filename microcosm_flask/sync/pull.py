@@ -54,6 +54,10 @@ def sort_links(resource):
     return resource
 
 
+context_translation = {
+}
+
+
 def pull_json(args, base_url):
     """
     Pull JSON resources by spidering a base url.
@@ -82,6 +86,9 @@ def pull_json(args, base_url):
                 if href not in seen and any(pattern.match(relation) for pattern in args.relation_patterns):
                     seen.add(href)
                     stack.append(href)
+            if resource['contextId'] not in context_translation:
+                continue
+            resource['contextId'] = context_translation[resource['contextId']]
             yield href, resource
 
         for relation, link in iter_links(data):

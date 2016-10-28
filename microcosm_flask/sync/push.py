@@ -110,9 +110,17 @@ def push_resource_json(session, uri, resource):
     Assumes that the backend supports a replace/put convention.
 
     """
+    uri = '/'.join(uri.split('/')[:-1])
     logger.debug("Pushing resource for {}".format(uri))
+    resource = dict([
+        (k, v) for (k, v) in resource.iteritems() if
+        v is not None and
+        k not in ('id', 'featureTypeId', 'dataType', 'qnaSessionId', '_links', 'clock')
+    ])
+    resource['eventType'] = 'Fact'
+    resource['createdBy'] = 'copied'
 
-    response = session.put(
+    response = session.post(
         uri,
         data=dumps(resource),
         headers={"Content-Type": "application/json"},
