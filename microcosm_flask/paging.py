@@ -35,9 +35,11 @@ def make_paginated_list_schema(ns, item_schema):
 
 
 class Page(object):
-    def __init__(self, offset, limit):
+
+    def __init__(self, offset, limit, **rest):
         self.offset = offset
         self.limit = limit
+        self.rest = rest
 
     @classmethod
     def from_query_string(cls, qs):
@@ -56,12 +58,14 @@ class Page(object):
         return Page(
             offset=self.offset + self.limit,
             limit=self.limit,
+            **self.rest
         )
 
     def prev(self):
         return Page(
             offset=self.offset - self.limit,
             limit=self.limit,
+            **self.rest
         )
 
     def to_dict(self):
@@ -75,6 +79,9 @@ class Page(object):
         return [
             ("offset", self.offset),
             ("limit", self.limit),
+        ] + [
+            (key, self.rest[key])
+            for key in sorted(self.rest.keys())
         ]
 
 

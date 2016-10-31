@@ -116,3 +116,56 @@ def test_paginated_list_relation_to_dict():
                 },
             }
         })))
+
+
+def test_custom_paginated_list():
+    graph = create_object_graph(name="example", testing=True)
+    ns = Namespace(subject="foo", object_="bar")
+
+    class CustomPage(Page):
+        @classmethod
+        def from_query_string(cls, qs):
+            dct = qs.copy()
+            offset = dct.pop("offset")
+            limit = dct.pop("limit")
+            return cls(
+                offset=offset,
+                limit=limit,
+                **dct
+            )
+
+    @graph.route(ns.relation_path, Operation.SearchFor, ns)
+    def search_foo():
+        pass
+
+    paginated_list = PaginatedList(
+        ns,
+        CustomPage.from_query_string(dict(offset=2, limit=2, baz="baz")),
+        ["1", "2"],
+        10,
+        operation=Operation.SearchFor,
+        foo_id="FOO_ID",
+    )
+
+    with graph.flask.test_request_context():
+        assert_that(paginated_list.to_dict(), is_(equal_to({
+            "count": 10,
+            "items": [
+                "1",
+                "2",
+            ],
+            "offset": 2,
+            "limit": 2,
+            "_links": {
+                "self": {
+                    "href": "http://localhost/api/foo/FOO_ID/bar?offset=2&limit=2&baz=baz",
+                },
+                "next": {
+                    "href": "http://localhost/api/foo/FOO_ID/bar?offset=4&limit=2&baz=baz",
+                },
+                "prev": {
+                    "href": "http://localhost/api/foo/FOO_ID/bar?offset=0&limit=2&baz=baz",
+                },
+            },
+            "baz": "baz",
+        })))

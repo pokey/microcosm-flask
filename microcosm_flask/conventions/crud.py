@@ -21,6 +21,10 @@ from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_sche
 
 class CRUDConvention(Convention):
 
+    @property
+    def page_cls(self):
+        return Page
+
     def configure_search(self, ns, definition):
         """
         Register a search endpoint.
@@ -43,7 +47,7 @@ class CRUDConvention(Convention):
         @response(paginated_list_schema)
         def search(**path_data):
             request_data = load_query_string_data(definition.request_schema)
-            page = Page.from_query_string(request_data)
+            page = self.page_cls.from_query_string(request_data)
             return_value = definition.func(**merge_data(path_data, request_data))
 
             if len(return_value) == 3:
