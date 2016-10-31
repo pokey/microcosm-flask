@@ -9,7 +9,6 @@ from microcosm_flask.conventions.encoding import (
     dump_response_data,
     load_query_string_data,
     load_request_data,
-    make_response,
     merge_data,
     require_response_data,
 )
@@ -20,6 +19,10 @@ from microcosm_flask.paging import Page, PaginatedList, make_paginated_list_sche
 
 
 class CRUDConvention(Convention):
+
+    @property
+    def page_cls(self):
+        return Page
 
     def configure_search(self, ns, definition):
         """
@@ -43,7 +46,7 @@ class CRUDConvention(Convention):
         @response(paginated_list_schema)
         def search(**path_data):
             request_data = load_query_string_data(definition.request_schema)
-            page = Page.from_query_string(request_data)
+            page = self.page_cls.from_query_string(request_data)
             return_value = definition.func(**merge_data(path_data, request_data))
 
             if len(return_value) == 3:
@@ -52,9 +55,16 @@ class CRUDConvention(Convention):
                 context = {}
                 items, count = return_value
 
-            # TODO: use the schema for encoding
-            response_data = PaginatedList(ns, page, items, count, definition.response_schema, **context).to_dict()
-            return make_response(response_data)
+            response_data = PaginatedList(
+                ns=ns,
+                page=page,
+                items=items,
+                count=count,
+                schema=definition.response_schema,
+                operation=Operation.Search,
+                **context
+            )
+            return dump_response_data(paginated_list_schema, response_data)
 
         search.__doc__ = "Search the collection of all {}".format(pluralize(ns.subject_name))
 
