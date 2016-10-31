@@ -29,7 +29,7 @@ def make_paginated_list_schema(ns, item_schema):
         limit = fields.Integer(required=True)
         count = fields.Integer(required=True)
         items = fields.List(fields.Nested(item_schema), required=True)
-        links = fields.Raw(dump_to="_links")
+        _links = fields.Raw()
 
     return PaginatedListSchema
 
@@ -49,9 +49,13 @@ class Page(object):
         This dictionary should probably come from `PageSchema.from_request()`.
 
         """
+        dct = qs.copy()
+        offset = dct.pop("offset")
+        limit = dct.pop("limit")
         return cls(
-            offset=qs["offset"],
-            limit=qs["limit"],
+            offset=offset,
+            limit=limit,
+            **dct
         )
 
     def next(self):
@@ -110,9 +114,21 @@ class PaginatedList(object):
                 self.schema.dump(item).data if self.schema else item
                 for item in self.items
             ],
-            _links=self.links.to_dict(),
+            _links=self._links,
             **self.page.to_dict()
         )
+
+    @property
+    def offset(self):
+        return self.page.offset
+
+    @property
+    def limit(self):
+        return self.page.limit
+
+    @property
+    def _links(self):
+        return self.links.to_dict()
 
     @property
     def links(self):

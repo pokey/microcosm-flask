@@ -122,25 +122,13 @@ def test_custom_paginated_list():
     graph = create_object_graph(name="example", testing=True)
     ns = Namespace(subject="foo", object_="bar")
 
-    class CustomPage(Page):
-        @classmethod
-        def from_query_string(cls, qs):
-            dct = qs.copy()
-            offset = dct.pop("offset")
-            limit = dct.pop("limit")
-            return cls(
-                offset=offset,
-                limit=limit,
-                **dct
-            )
-
     @graph.route(ns.relation_path, Operation.SearchFor, ns)
     def search_foo():
         pass
 
     paginated_list = PaginatedList(
         ns,
-        CustomPage.from_query_string(dict(offset=2, limit=2, baz="baz")),
+        Page.from_query_string(dict(offset=2, limit=2, baz="baz")),
         ["1", "2"],
         10,
         operation=Operation.SearchFor,
