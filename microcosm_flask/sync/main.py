@@ -99,4 +99,4 @@ def main():
     set_relation_patterns(args)
     set_verbosity(args)
     data = pull(args)
-    push(args, toposorted(data))
+    push(args, sorted(data, key=lambda (href, resource): resource["clock"]))
