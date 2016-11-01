@@ -11,7 +11,6 @@ import re
 
 from microcosm_flask.sync.pull import pull
 from microcosm_flask.sync.push import push
-from microcosm_flask.sync.toposort import toposorted
 
 
 def parse_args():
