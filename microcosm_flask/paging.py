@@ -29,15 +29,17 @@ def make_paginated_list_schema(ns, item_schema):
         limit = fields.Integer(required=True)
         count = fields.Integer(required=True)
         items = fields.List(fields.Nested(item_schema), required=True)
-        links = fields.Raw(dump_to="_links")
+        _links = fields.Raw()
 
     return PaginatedListSchema
 
 
 class Page(object):
-    def __init__(self, offset, limit):
+
+    def __init__(self, offset, limit, **rest):
         self.offset = offset
         self.limit = limit
+        self.rest = rest
 
     @classmethod
     def from_query_string(cls, qs):
@@ -47,21 +49,27 @@ class Page(object):
         This dictionary should probably come from `PageSchema.from_request()`.
 
         """
+        dct = qs.copy()
+        offset = dct.pop("offset")
+        limit = dct.pop("limit")
         return cls(
-            offset=qs["offset"],
-            limit=qs["limit"],
+            offset=offset,
+            limit=limit,
+            **dct
         )
 
     def next(self):
         return Page(
             offset=self.offset + self.limit,
             limit=self.limit,
+            **self.rest
         )
 
     def prev(self):
         return Page(
             offset=self.offset - self.limit,
             limit=self.limit,
+            **self.rest
         )
 
     def to_dict(self):
@@ -75,6 +83,9 @@ class Page(object):
         return [
             ("offset", self.offset),
             ("limit", self.limit),
+        ] + [
+            (key, self.rest[key])
+            for key in sorted(self.rest.keys())
         ]
 
 
@@ -103,9 +114,21 @@ class PaginatedList(object):
                 self.schema.dump(item).data if self.schema else item
                 for item in self.items
             ],
-            _links=self.links.to_dict(),
+            _links=self._links,
             **self.page.to_dict()
         )
+
+    @property
+    def offset(self):
+        return self.page.offset
+
+    @property
+    def limit(self):
+        return self.page.limit
+
+    @property
+    def _links(self):
+        return self.links.to_dict()
 
     @property
     def links(self):
