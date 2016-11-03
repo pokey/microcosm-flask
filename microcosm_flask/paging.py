@@ -50,8 +50,8 @@ class Page(object):
 
         """
         dct = qs.copy()
-        offset = dct.pop("offset")
-        limit = dct.pop("limit")
+        offset = dct.pop("offset", None)
+        limit = dct.pop("limit", None)
         return cls(
             offset=offset,
             limit=limit,
