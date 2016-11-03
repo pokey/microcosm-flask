@@ -45,7 +45,7 @@ def load_query_string_data(request_schema):
     """
     Load query string data using the given schema.
 
-    Schemas are assumbed to be compatible with the `PageSchema`.
+    Schemas are assumed to be compatible with the `PageSchema`.
 
     """
     query_string_data = request.args
