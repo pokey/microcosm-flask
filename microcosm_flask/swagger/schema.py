@@ -6,7 +6,7 @@ from logging import getLogger
 
 from marshmallow import fields
 
-from microcosm_flask.fields import EnumField
+from microcosm_flask.fields import EnumField, QueryStringList
 from microcosm_flask.naming import name_for
 from microcosm_flask.swagger.naming import type_name
 
@@ -16,25 +16,26 @@ logger = getLogger("microcosm_flask.swagger")
 
 # see: https://github.com/marshmallow-code/apispec/blob/dev/apispec/ext/marshmallow/swagger.py
 FIELD_MAPPINGS = {
-    fields.Dict: ("object", None),
-    fields.Integer: ("integer", "int32"),
-    fields.Number: ("number", None),
-    fields.Float: ("number", "float"),
-    fields.Decimal: ("number", None),
-    fields.String: ("string", None),
-    fields.Boolean: ("boolean", None),
-    fields.UUID: ("string", "uuid"),
-    fields.DateTime: ("string", "date-time"),
-    fields.Date: ("string", "date"),
-    fields.Time: ("string", None),
-    fields.Email: ("string", "email"),
-    fields.URL: ("string", "url"),
-    fields.Field: ("object", None),
-    fields.Raw: ("object", None),
-    fields.List: ("array", None),
-    fields.Nested: (None, None),
-    fields.Method: ("object", None),
     EnumField: ("string", None),
+    QueryStringList: ("array", None),
+    fields.Boolean: ("boolean", None),
+    fields.Date: ("string", "date"),
+    fields.DateTime: ("string", "date-time"),
+    fields.Decimal: ("number", None),
+    fields.Dict: ("object", None),
+    fields.Email: ("string", "email"),
+    fields.Field: ("object", None),
+    fields.Float: ("number", "float"),
+    fields.Integer: ("integer", "int32"),
+    fields.List: ("array", None),
+    fields.Method: ("object", None),
+    fields.Nested: (None, None),
+    fields.Number: ("number", None),
+    fields.Raw: ("object", None),
+    fields.String: ("string", None),
+    fields.Time: ("string", None),
+    fields.URL: ("string", "url"),
+    fields.UUID: ("string", "uuid"),
 }
 
 
