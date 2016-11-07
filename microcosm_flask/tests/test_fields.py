@@ -11,8 +11,14 @@ from hamcrest import (
     is_,
 )
 from marshmallow import Schema
+from marshmallow.fields import String
+from werkzeug.datastructures import ImmutableMultiDict
 
-from microcosm_flask.fields import EnumField, TimestampField
+from microcosm_flask.fields import (
+    EnumField,
+    QueryStringList,
+    TimestampField,
+)
 
 
 TIMESTAMP = 1427702400.0
@@ -45,6 +51,10 @@ class EnumSchema(Schema):
 class TimestampSchema(Schema):
     unix = TimestampField()
     iso = TimestampField(use_isoformat=True)
+
+
+class QueryStringListSchema(Schema):
+    foo_ids = QueryStringList(String())
 
 
 def test_load_enums():
@@ -201,3 +211,36 @@ def test_dump():
 
     assert_that(result.data["unix"], is_(equal_to(TIMESTAMP)))
     assert_that(result.data["iso"], is_(equal_to(ISOFORMAT_NAIVE)))
+
+
+def test_query_list_load_with_comma_separated_single_keys():
+    """
+    tests for support of /foo?foo_ids=1,2
+    """
+    schema = QueryStringListSchema()
+    result = schema.load(
+        ImmutableMultiDict([("foo_ids", "a,b")]),
+    )
+
+    assert_that(result.data["foo_ids"], is_(equal_to(["a", "b"])))
+
+
+def test_query_list_load_with_duplicate_keys():
+    """
+    tests for support of /foo?foo_ids[]=1&foo_ids[]=2
+    """
+    schema = QueryStringListSchema()
+    result = schema.load(
+        ImmutableMultiDict([("foo_ids", "a"), ("foo_ids", "b")]),
+    )
+
+    assert_that(result.data["foo_ids"], is_(equal_to(["a", "b"])))
+
+
+def test_query_list_dump():
+    schema = QueryStringListSchema()
+    result = schema.dump({
+        "foo_ids": ["a"],
+    })
+
+    assert_that(result.data["foo_ids"], is_(equal_to(["a"])))
