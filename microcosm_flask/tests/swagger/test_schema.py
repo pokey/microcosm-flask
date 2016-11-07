@@ -8,7 +8,7 @@ from hamcrest import (
     is_,
 )
 
-from enum import Enum, unique
+from enum import Enum, IntEnum, unique
 from marshmallow import Schema, fields
 
 from microcosm_flask.fields import EnumField
@@ -21,10 +21,17 @@ class Choices(Enum):
     Profit = "profit"
 
 
+@unique
+class ValueType(IntEnum):
+    Foo = 1
+    Bar = 2
+
+
 class TestSchema(Schema):
     id = fields.UUID()
     foo = fields.String(description="Foo", default="bar")
     choice = EnumField(Choices)
+    value = EnumField(ValueType, by_value=True)
     names = fields.List(fields.String)
     payload = fields.Dict()
     ref = fields.Nested(NewPersonSchema)
@@ -72,6 +79,17 @@ def test_field_enum():
         "type": "string",
         "enum": [
             "Profit",
+        ],
+    })))
+
+
+def test_field_int_enum():
+    parameter = build_parameter(TestSchema().fields["value"])
+    assert_that(parameter, is_(equal_to({
+        "type": "int",
+        "enum": [
+            1,
+            2
         ],
     })))
 
