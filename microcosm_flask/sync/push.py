@@ -40,6 +40,7 @@ def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts
     session = session_factory()
     for uri, resources in iter_json_batches(inputs, base_url, batch_size):
         # retry on connection failures
+        last_error = None
         for attempt in range(max_attempts):
             try:
                 if batch_size == 1:
@@ -50,18 +51,21 @@ def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts
                 logger.info("Connection error for uri: {}: {}".format(uri, error))
                 # on connection failure, recreate the session
                 session = session_factory()
+                last_error = error
                 continue
             except HTTPError as error:
                 if error.response.status_code in (504, 502):
-                    logger.info("Connection error for uri: {}: {}".format(uri, error))
+                    logger.info("HTTP error for uri: {}: {}".format(uri, error))
                     # on connection failure, recreate the session
                     session = session_factory()
+                    last_error = error
                     continue
                 raise
             else:
                 break
         else:
-            raise error
+            # If reached here, all attempts were unsuccessful - raise last error encountered
+            raise last_error
 
 
 def iter_json_batches(inputs, base_url, batch_size):
