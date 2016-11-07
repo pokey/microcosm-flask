@@ -42,9 +42,11 @@ class Operation(Enum):
 
     # relation operations
     CreateFor = OperationInfo("create_for", "POST", EDGE_PATTERN, 201)
+    DeleteFor = OperationInfo("delete_for", "DELETE", EDGE_PATTERN, 204)
     ReplaceFor = OperationInfo("replace_for", "PUT", EDGE_PATTERN, 200)
     RetrieveFor = OperationInfo("retrieve_for", "GET", EDGE_PATTERN, 200)
     SearchFor = OperationInfo("search_for", "GET", EDGE_PATTERN, 200)
+    UpdateFor = OperationInfo("update_for", "PATCH", EDGE_PATTERN, 200)
 
     # ad hoc operations
     Command = OperationInfo("command", "POST", NODE_PATTERN, 200)

@@ -3,6 +3,7 @@ Generate JSON Schema for Marshmallow schemas.
 
 """
 from logging import getLogger
+from six import string_types
 
 from marshmallow import fields
 
@@ -16,7 +17,7 @@ logger = getLogger("microcosm_flask.swagger")
 
 # see: https://github.com/marshmallow-code/apispec/blob/dev/apispec/ext/marshmallow/swagger.py
 FIELD_MAPPINGS = {
-    EnumField: ("string", None),
+    EnumField: (None, None),
     QueryStringList: ("array", None),
     fields.Boolean: ("boolean", None),
     fields.Date: ("string", "date"),
@@ -41,6 +42,15 @@ FIELD_MAPPINGS = {
 
 SWAGGER_TYPE = "__swagger_type__"
 SWAGGER_FORMAT = "__swagger_format__"
+
+
+def is_int(value):
+    try:
+        int(value)
+    except:
+        return False
+    else:
+        return True
 
 
 def swagger_field(field, swagger_type="string", swagger_format=None):
@@ -81,7 +91,19 @@ def build_parameter(field):
     # enums
     enum = getattr(field, "enum", None)
     if enum:
-        parameter["enum"] = [choice.name for choice in enum]
+        enum_values = [
+            choice.value if field.by_value else choice.name
+            for choice in enum
+        ]
+        if all((isinstance(enum_value, string_types) for enum_value in enum_values)):
+            enum_type = "string"
+        elif all((is_int(enum_value) for enum_value in enum_values)):
+            enum_type = "int"
+        else:
+            raise Exception("Cannot infer enum type for field: {}".format(field.name))
+
+        parameter["type"] = enum_type
+        parameter["enum"] = enum_values
 
     # nested
     if isinstance(field, fields.Nested):
