@@ -6,6 +6,7 @@ using HTTP 200/503 status codes to indicate healthiness.
 
 """
 from microcosm.api import defaults
+from microcosm_flask.audit import skip_logging
 from microcosm_flask.conventions.base import Convention
 from microcosm_flask.conventions.encoding import make_response
 from microcosm_flask.errors import extract_error_message
@@ -86,7 +87,9 @@ class HealthConvention(Convention):
         self.health = Health(graph)
 
     def configure_retrieve(self, ns, definition):
+
         @self.graph.route(ns.singleton_path, Operation.Retrieve, ns)
+        @skip_logging
         def current_health():
             response_data = self.health.to_dict()
             status_code = 200 if response_data["ok"] else 503
