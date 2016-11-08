@@ -24,6 +24,26 @@ AuditOptions = namedtuple("AuditOptions", [
 ])
 
 
+SKIP_LOGGING = "_microcosm_flask_skip_audit_logging"
+
+
+def skip_logging(func):
+    """
+    Decorate a function so logging will be skipped.
+
+    """
+    setattr(func, SKIP_LOGGING, True)
+    return func
+
+
+def should_skip_logging(func):
+    """
+    Should we skip logging for this handler?
+
+    """
+    return getattr(func, SKIP_LOGGING, False)
+
+
 def audit(func):
     """
     Record a Flask route function in the audit log.
@@ -109,9 +129,9 @@ def _audit_request(options, func, request_context, *args, **kwargs):
 
         return response
     finally:
-        # always log at INFO; we can't know whether a raised exception
-        # is an error or expected behavior
-        logger.info(audit_dict)
+        # always log at INFO; a raised exception can be an error or expected behavior (e.g. 404)
+        if not should_skip_logging(func):
+            logger.info(audit_dict)
 
 
 def parse_response(response):
