@@ -212,10 +212,12 @@ def test_build_swagger():
                 "properties": {
                     "message": {
                         "type": "string",
+                        "default": "Unknown Error",
                     },
                     "code": {
                         "type": "integer",
                         "format": "int32",
+                        "default": 500,
                     },
                     "context": {
                         "$ref": "#/definitions/ErrorContext",
