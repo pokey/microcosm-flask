@@ -58,6 +58,11 @@ def parse_args():
         help="Batch size (requires backend PATCH support if >1)",
     )
     parser.add_argument(
+        "--keep-instance-path",
+        action="store_true",
+        help="Keep the individual instance URI path when using the bulk import (PATCH) API. Used along with --batch-size.",  # noqa:E501
+    )
+    parser.add_argument(
         "--enable-sessions",
         action="store_true",
     )
