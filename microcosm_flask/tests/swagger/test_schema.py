@@ -86,7 +86,7 @@ def test_field_enum():
 def test_field_int_enum():
     parameter = build_parameter(TestSchema().fields["value"])
     assert_that(parameter, is_(equal_to({
-        "type": "int",
+        "type": "integer",
         "enum": [
             1,
             2

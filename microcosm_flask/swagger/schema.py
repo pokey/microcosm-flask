@@ -98,7 +98,7 @@ def build_parameter(field):
         if all((isinstance(enum_value, string_types) for enum_value in enum_values)):
             enum_type = "string"
         elif all((is_int(enum_value) for enum_value in enum_values)):
-            enum_type = "int"
+            enum_type = "integer"
         else:
             raise Exception("Cannot infer enum type for field: {}".format(field.name))
 
