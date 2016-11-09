@@ -29,6 +29,7 @@ def make_paginated_list_schema(ns, item_schema):
         limit = fields.Integer(required=True)
         count = fields.Integer(required=True)
         items = fields.List(fields.Nested(item_schema), required=True)
+        strict = True
         _links = fields.Raw()
 
     return PaginatedListSchema
