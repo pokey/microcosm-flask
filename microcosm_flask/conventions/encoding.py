@@ -89,8 +89,13 @@ def make_response(response_data, status_code=200, headers=None):
         # swagger does not currently support null values; remove these conditionally
         response_data = remove_null_values(response_data)
 
+    headers = headers or {}
+    if "Content-Type" not in headers:
+        # Specify JSON as the response content type by default
+        headers["Content-Type"] = "application/json"
+
     response = jsonify(response_data)
-    response.headers = Headers(headers or {})
+    response.headers = Headers(headers)
     response.status_code = status_code
     return response
 
