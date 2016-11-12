@@ -91,12 +91,12 @@ def pull_json(args, base_url):
             resource['contextId'] = context_translation[resource['contextId']]
             yield href, resource
 
-        for relation, link in iter_links(data):
-            href = link["href"]
-            # follow top-level search links and pagination next links
-            if href not in seen and any(pattern.match(relation) for pattern in args.relation_patterns):
-                seen.add(href)
-                stack.append(href)
+        # for relation, link in iter_links(data):
+        #     href = link["href"]
+        #     # follow top-level search links and pagination next links
+        #     if href not in seen and any(pattern.match(relation) for pattern in args.relation_patterns):
+        #         seen.add(href)
+        #         stack.append(href)
 
 
 def pull_yaml(args, source):
