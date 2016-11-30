@@ -133,11 +133,13 @@ def _audit_request(options, func, request_context, *args, **kwargs):  # noqa: C9
     finally:
         # determine whether to show/hide body based on the g values set during func
         if not g.get("hide_body"):
-            for field in g.get("hide_request_fields", []):
-                try:
-                    del request_body[field]
-                except KeyError:
-                    pass
+            if request_body:
+                for field in g.get("hide_request_fields", []):
+                    try:
+                        del request_body[field]
+                    except KeyError:
+                        pass
+                audit_dict["request_body"] = request_body
 
             if response_body:
                 for field in g.get("hide_response_fields", []):
