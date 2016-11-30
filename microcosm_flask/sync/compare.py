@@ -53,5 +53,6 @@ def main():
             print right[key]  # noqa
             exit(1)
 
+
 if __name__ == '__main__':
     main()
