@@ -62,7 +62,7 @@ def audit(func):
     return wrapper
 
 
-def _audit_request(options, func, request_context, *args, **kwargs):
+def _audit_request(options, func, request_context, *args, **kwargs):  # noqa: C901
     """
     Run a request function under audit.
 
@@ -83,9 +83,12 @@ def _audit_request(options, func, request_context, *args, **kwargs):
         current_app.debug,
         options.include_request_body,
         request.get_json(force=True, silent=True),
-        not g.get("hide_body"),
     )):
-        audit_dict["request_body"] = request.get_json(force=True)
+        request_body = request.get_json(force=True)
+    else:
+        request_body = None
+
+    response_body = None
 
     # include headers (conditionally)
     if request_context is not None:
@@ -119,16 +122,31 @@ def _audit_request(options, func, request_context, *args, **kwargs):
                 current_app.debug,
                 options.include_response_body,
                 body,
-                not g.get("hide_body"),
         )):
             try:
-                audit_dict["response_body"] = loads(body)
+                response_body = loads(body)
             except (TypeError, ValueError):
                 # not json
                 audit_dict["response_body"] = body
 
         return response
     finally:
+        # determine whether to show/hide body based on the g values set during func
+        if not g.get("hide_body"):
+            for field in g.get("hide_request_fields", []):
+                try:
+                    del request_body[field]
+                except KeyError:
+                    pass
+
+            if response_body:
+                for field in g.get("hide_response_fields", []):
+                    try:
+                        del response_body[field]
+                    except KeyError:
+                        pass
+                audit_dict["response_body"] = response_body
+
         # always log at INFO; a raised exception can be an error or expected behavior (e.g. 404)
         if not should_skip_logging(func):
             logger.info(audit_dict)
