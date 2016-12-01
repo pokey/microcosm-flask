@@ -57,5 +57,6 @@ setup(
         "coverage>=3.7.1",
         "mock>=1.0.1",
         "PyHamcrest>=1.8.5",
+        "urltools>=0.3.2",
     ],
 )
