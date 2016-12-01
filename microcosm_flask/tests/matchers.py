@@ -3,6 +3,7 @@ Hamcrest custom matchers used by unit-tests.
 
 """
 from hamcrest.core.base_matcher import BaseMatcher
+from six import string_types
 from urltools import normalize
 
 
@@ -20,6 +21,9 @@ class URLMatcher(BaseMatcher):
         self.url = url
 
     def _matches(self, item):
+        if not isinstance(item, string_types):
+            return False
+
         return normalize(item) == normalize(self.url)
 
     def describe_to(self, description):
