@@ -26,7 +26,7 @@ def push_yaml(inputs, destination):
     safe_dump_all(({href: resource} for href, resource in inputs), destination)
 
 
-def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts=2):
+def push_json(inputs, base_url, batch_size, enable_sessions=False,  keep_instance_path=False, max_attempts=2):
     """
     Write inputs to remote URL as JSON.
 
@@ -38,7 +38,7 @@ def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts
     session_factory = requests.Session if enable_sessions else lambda: requests
 
     session = session_factory()
-    for uri, resources in iter_json_batches(inputs, base_url, batch_size):
+    for uri, resources in iter_json_batches(inputs, base_url, batch_size, keep_instance_path):
         # retry on connection failures
         last_error = None
         for attempt in range(max_attempts):
@@ -68,7 +68,7 @@ def push_json(inputs, base_url, batch_size, enable_sessions=False,  max_attempts
             raise last_error
 
 
-def iter_json_batches(inputs, base_url, batch_size):
+def iter_json_batches(inputs, base_url, batch_size, keep_instance_path):
     parsed_base_url = urlparse(base_url)
 
     current_uri = None
@@ -91,7 +91,10 @@ def iter_json_batches(inputs, base_url, batch_size):
             yield (uri, [resource])
         else:
             # batch handling
-            collection_uri = uri.rsplit("/", 1)[0]
+            if keep_instance_path:
+                collection_uri = uri.rsplit("?", 1)[0]
+            else:
+                collection_uri = uri.rsplit("/", 1)[0]
 
             if any((
                     current_uri is not None and current_uri != collection_uri,
@@ -169,7 +172,7 @@ def push(args, inputs):
     if args.output == "-":
         push_yaml(inputs, stdout)
     elif args.output.startswith("http"):
-        push_json(inputs, args.output, args.batch_size, args.enable_sessions)
+        push_json(inputs, args.output, args.batch_size, args.enable_sessions, args.keep_instance_path)
     else:
         with open(args.output, "w") as file_:
             push_yaml(inputs, file_)

@@ -13,6 +13,7 @@ from mock import Mock
 from microcosm.api import create_object_graph
 from microcosm_flask.namespaces import Namespace
 from microcosm_flask.operations import Operation
+from microcosm_flask.tests.matchers import matches_url
 
 
 def test_endpoint_for():
@@ -118,6 +119,24 @@ def test_operation_href_for():
     with graph.app.test_request_context():
         url = ns.href_for(Operation.Search)
         assert_that(url, is_(equal_to("http://localhost/api/foo")))
+
+
+def test_operation_href_for_qs():
+    """
+    Operations can resolve themselves as fully expanded hrefs with
+    custom query string parameter.
+
+    """
+    graph = create_object_graph(name="example", testing=True)
+    ns = Namespace(subject="foo")
+
+    @graph.route(ns.collection_path, Operation.Search, ns)
+    def search_foo():
+        pass
+
+    with graph.app.test_request_context():
+        url = ns.href_for(Operation.Search, offset=0, limit=10, qs=dict(foo="bar"))
+        assert_that(url, matches_url("http://localhost/api/foo?offset=0&limit=10&foo=bar"))
 
 
 def test_namespace_accepts_controller():

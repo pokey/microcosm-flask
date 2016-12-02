@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 project = "microcosm-flask"
-version = "0.47.3"
+version = "0.47.4"
 
 setup(
     name=project,
@@ -57,5 +57,6 @@ setup(
         "coverage>=3.7.1",
         "mock>=1.0.1",
         "PyHamcrest>=1.8.5",
+        "urltools>=0.3.2",
     ],
 )
