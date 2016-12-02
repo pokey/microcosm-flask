@@ -152,9 +152,12 @@ class Namespace(object):
         :parm qs: the query string dictionary, if any
         :param kwargs: additional arguments for path expansion
         """
+        url = urljoin(request.url_root, self.url_for(operation, **kwargs))
+        qs_character = "?" if url.find("?") == -1 else "&"
+
         return "{}{}".format(
-            urljoin(request.url_root, self.url_for(operation, **kwargs)),
-            "?{}".format(urlencode(qs)) if qs else "",
+            url,
+            "{}{}".format(qs_character, urlencode(qs)) if qs else "",
         )
 
     @classmethod
