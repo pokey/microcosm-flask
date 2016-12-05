@@ -63,7 +63,7 @@ class RelationConvention(Convention):
         :param definition: the endpoint definition
 
         """
-        @self.graph.route(ns.instance_path, Operation.DeleteFor, ns)
+        @self.graph.route(ns.relation_path, Operation.DeleteFor, ns)
         def delete(**path_data):
             require_response_data(definition.func(**path_data))
             return "", Operation.DeleteFor.value.default_code
