@@ -26,7 +26,7 @@ def configure_request_context(graph):
 
     Usage:
         graph.request_context()
-    """
 
+    """
     include_header_prefix = graph.config.request_context.include_header_prefix
     return context_wrapper(include_header_prefix)
