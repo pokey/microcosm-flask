@@ -3,7 +3,11 @@ Hamcrest matching support for JSON responses.
 
 """
 from json import dumps, loads
+
 from hamcrest.core.base_matcher import BaseMatcher
+from six import string_types
+
+from microcosm_flask.fields.uri_field import normalize_uri
 
 
 def prettify(value):
@@ -63,3 +67,30 @@ class JSONMatcher(BaseMatcher):
 
     def describe_to(self, description):
         description.append_text("expected {}".format(prettify(self.expected)))
+
+
+class URIMatcher(BaseMatcher):
+    """
+    Hamcrest matcher for comparing URIs by canonicalizing them first.
+
+    Example:
+
+        with graph.app.test_request_context():
+           assert_that(uri, matches_uri("https://canonical.url.com/path?a=1&b=2"))
+
+    """
+    def __init__(self, uri):
+        self.uri = uri
+
+    def _matches(self, item):
+        if not isinstance(item, string_types):
+            return False
+
+        return normalize_uri(item) == normalize_uri(self.uri)
+
+    def describe_to(self, description):
+        description.append_text("expected URI: {}".format(self.uri))
+
+
+def matches_uri(uri):
+    return URIMatcher(uri)
