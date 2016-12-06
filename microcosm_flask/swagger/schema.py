@@ -7,7 +7,7 @@ from six import string_types
 
 from marshmallow import fields
 
-from microcosm_flask.fields import EnumField, QueryStringList
+from microcosm_flask.fields import EnumField, QueryStringList, URIField
 from microcosm_flask.naming import name_for
 from microcosm_flask.swagger.naming import type_name
 
@@ -19,6 +19,7 @@ logger = getLogger("microcosm_flask.swagger")
 FIELD_MAPPINGS = {
     EnumField: (None, None),
     QueryStringList: ("array", None),
+    URIField: ("string", "uri"),
     fields.Boolean: ("boolean", None),
     fields.Date: ("string", "date"),
     fields.DateTime: ("string", "date-time"),
