@@ -27,6 +27,7 @@ setup(
         "openapi>=0.5.0",
         "python-dateutil>=2.5.2",
         "PyYAML>=3.11",
+        "rfc3986>=0.4.1",
     ],
     setup_requires=[
         "nose>=1.3.6",
@@ -57,6 +58,5 @@ setup(
         "coverage>=3.7.1",
         "mock>=1.0.1",
         "PyHamcrest>=1.8.5",
-        "urltools>=0.3.2",
     ],
 )
