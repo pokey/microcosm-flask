@@ -23,7 +23,7 @@ class LanguageField(String):
 
     def _serialize(self, value, attr, obj):
         validated = str(self._validated(value)) if value is not None else None
-        return super(String, self)._serialize(validated, attr, obj)
+        return super(LanguageField, self)._serialize(validated, attr, obj)
 
     def _deserialize(self, value, attr, data):
         return self._validated(value)
