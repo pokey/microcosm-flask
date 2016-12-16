@@ -7,7 +7,12 @@ from six import string_types
 
 from marshmallow import fields
 
-from microcosm_flask.fields import EnumField, QueryStringList, URIField
+from microcosm_flask.fields import (
+    EnumField,
+    LanguageField,
+    QueryStringList,
+    URIField,
+)
 from microcosm_flask.naming import name_for
 from microcosm_flask.swagger.naming import type_name
 
@@ -18,6 +23,7 @@ logger = getLogger("microcosm_flask.swagger")
 # see: https://github.com/marshmallow-code/apispec/blob/dev/apispec/ext/marshmallow/swagger.py
 FIELD_MAPPINGS = {
     EnumField: (None, None),
+    LanguageField: ("string", "language"),
     QueryStringList: ("array", None),
     URIField: ("string", "uri"),
     fields.Boolean: ("boolean", None),
