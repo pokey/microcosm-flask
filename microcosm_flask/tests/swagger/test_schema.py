@@ -35,6 +35,8 @@ class TestSchema(Schema):
     names = fields.List(fields.String)
     payload = fields.Dict()
     ref = fields.Nested(NewPersonSchema)
+    decimal = fields.Decimal()
+    decimalString = fields.Decimal(as_string=True)
 
 
 def test_schema_generation():
@@ -101,6 +103,20 @@ def test_field_array():
         "items": {
             "type": "string",
         }
+    })))
+
+
+def test_field_decimal():
+    parameter = build_parameter(TestSchema().fields["decimal"])
+    assert_that(parameter, is_(equal_to({
+        "type": "number",
+    })))
+
+
+def test_field_decimal_as_string():
+    parameter = build_parameter(TestSchema().fields["decimalString"])
+    assert_that(parameter, is_(equal_to({
+        "type": "string",
     })))
 
 
