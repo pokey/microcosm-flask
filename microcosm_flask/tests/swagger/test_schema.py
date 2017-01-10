@@ -106,14 +106,14 @@ def test_field_array():
     })))
 
 
-def test_field_description_and_default():
+def test_field_decimal():
     parameter = build_parameter(TestSchema().fields["decimal"])
     assert_that(parameter, is_(equal_to({
         "type": "number",
     })))
 
 
-def test_field_description_and_default():
+def test_field_decimal_as_string():
     parameter = build_parameter(TestSchema().fields["decimalString"])
     assert_that(parameter, is_(equal_to({
         "type": "string",
