@@ -94,6 +94,8 @@ def build_parameter(field):
         parameter["format"] = field_format
     if field.default:
         parameter["default"] = field.default
+    if getattr(field, 'as_string', None):
+        parameter["type"] = "string"
 
     # enums
     enum = getattr(field, "enum", None)
