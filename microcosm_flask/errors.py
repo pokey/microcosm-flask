@@ -125,7 +125,7 @@ def make_json_error(error):
     # Serialize into JSON response
     response_data = {
         "code": status_code,
-        "context": context,
+        "context": str(context),
         "message": message,
         "retryable": retryable,
     }
